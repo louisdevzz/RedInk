@@ -4,7 +4,7 @@
     <!-- Header Area -->
     <div class="page-header">
       <div>
-        <h1 class="page-title">我的创作</h1>
+        <h1 class="page-title">Tác phẩm của tôi</h1>
       </div>
       <div style="display: flex; gap: 10px;">
         <button
@@ -15,11 +15,11 @@
         >
           <svg v-if="!isScanning" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px;"><path d="M23 4v6h-6"></path><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
           <div v-else class="spinner-small" style="margin-right: 6px;"></div>
-          {{ isScanning ? '同步中...' : '同步历史' }}
+          {{ isScanning ? 'Đang đồng bộ...' : 'Đồng bộ lịch sử' }}
         </button>
         <button class="btn btn-primary" @click="router.push('/')">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px;"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-          新建图文
+          Tạo bài viết mới
         </button>
       </div>
     </div>
@@ -34,7 +34,7 @@
 
     <div v-else-if="successMessage" class="success-card" role="status" aria-live="polite">
       <span>{{ successMessage }}</span>
-      <button type="button" @click="successMessage = ''" aria-label="关闭提示">×</button>
+      <button type="button" @click="successMessage = ''" aria-label="Đóng thông báo">×</button>
     </div>
 
     <!-- Stats Overview -->
@@ -48,21 +48,21 @@
           :class="{ active: currentTab === 'all' }"
           @click="switchTab('all')"
         >
-          全部
+          Tất cả
         </div>
         <div
           class="tab-item"
           :class="{ active: currentTab === 'completed' }"
           @click="switchTab('completed')"
         >
-          已完成
+          Đã hoàn thành
         </div>
         <div
           class="tab-item"
           :class="{ active: currentTab === 'draft' }"
           @click="switchTab('draft')"
         >
-          草稿箱
+          Bản nháp
         </div>
       </div>
 
@@ -71,7 +71,7 @@
         <input
           v-model="searchKeyword"
           type="text"
-          placeholder="搜索标题..."
+          placeholder="Tìm kiếm tiêu đề..."
           @keyup.enter="handleSearch"
         />
       </div>
@@ -86,8 +86,8 @@
       <div class="empty-img">
         <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
       </div>
-      <h3>暂无相关记录</h3>
-      <p class="empty-tips">去创建一个新的作品吧</p>
+      <h3>Chưa có bản ghi liên quan</h3>
+      <p class="empty-tips">Hãy đi tạo một tác phẩm mới nhé</p>
     </div>
 
     <div v-else class="gallery-grid">
@@ -190,10 +190,10 @@ async function loadData() {
       records.value = res.records
       totalPages.value = res.total_pages
     } else {
-      error.value = normalizeApiError(res.error || res.error_message || '获取历史记录列表失败', '获取历史记录列表失败')
+      error.value = normalizeApiError(res.error || res.error_message || 'Lấy danh sách lịch sử thất bại', 'Lấy danh sách lịch sử thất bại')
     }
   } catch(e) {
-    error.value = normalizeApiError(e, '获取历史记录列表失败')
+    error.value = normalizeApiError(e, 'Lấy danh sách lịch sử thất bại')
   } finally {
     loading.value = false
   }
@@ -208,10 +208,10 @@ async function loadStats() {
     if (res.success) {
       stats.value = res
     } else {
-      error.value = normalizeApiError(res.error || res.error_message || '获取统计信息失败', '获取统计信息失败')
+      error.value = normalizeApiError(res.error || res.error_message || 'Lấy thông tin thống kê thất bại', 'Lấy thông tin thống kê thất bại')
     }
   } catch(e) {
-    error.value = normalizeApiError(e, '获取统计信息失败')
+    error.value = normalizeApiError(e, 'Lấy thông tin thống kê thất bại')
   }
 }
 
@@ -240,10 +240,10 @@ async function handleSearch() {
       records.value = res.records
       totalPages.value = 1
     } else {
-      error.value = normalizeApiError(res.error || res.error_message || '搜索历史记录失败', '搜索历史记录失败')
+      error.value = normalizeApiError(res.error || res.error_message || 'Tìm kiếm lịch sử thất bại', 'Tìm kiếm lịch sử thất bại')
     }
   } catch(e) {
-    error.value = normalizeApiError(e, '搜索历史记录失败')
+    error.value = normalizeApiError(e, 'Tìm kiếm lịch sử thất bại')
   } finally {
     loading.value = false
   }
@@ -273,7 +273,7 @@ async function loadRecord(id: string) {
     }
     router.push('/outline')
   } else {
-    error.value = normalizeApiError(res.error || res.error_message || '打开历史记录失败', '打开历史记录失败')
+    error.value = normalizeApiError(res.error || res.error_message || 'Mở bản ghi lịch sử thất bại', 'Mở bản ghi lịch sử thất bại')
   }
 }
 
@@ -285,7 +285,7 @@ async function viewImages(id: string) {
   if (res.success) {
     viewingRecord.value = res.record
   } else {
-    error.value = normalizeApiError(res.error || res.error_message || '查看图片失败', '查看图片失败')
+    error.value = normalizeApiError(res.error || res.error_message || 'Xem hình ảnh thất bại', 'Xem hình ảnh thất bại')
   }
 }
 
@@ -301,13 +301,13 @@ function closeGallery() {
  * 确认删除
  */
 async function confirmDelete(record: any) {
-  if(confirm('确定删除吗？')) {
+  if(confirm('Bạn có chắc chắn muốn xóa không?')) {
     const result = await deleteHistory(record.id)
     if (result.success) {
       loadData()
       loadStats()
     } else {
-      error.value = normalizeApiError(result.error || result.error_message || '删除历史记录失败', '删除历史记录失败')
+      error.value = normalizeApiError(result.error || result.error_message || 'Xóa bản ghi lịch sử thất bại', 'Xóa bản ghi lịch sử thất bại')
     }
   }
 }
@@ -325,7 +325,7 @@ function changePage(p: number) {
  */
 async function regenerateHistoryImage(index: number) {
   if (!viewingRecord.value || !viewingRecord.value.images.task_id) {
-    error.value = normalizeApiError('缺少任务信息，无法重新生成图片。', '无法重新生成')
+    error.value = normalizeApiError('Thiếu thông tin tác vụ, không thể tạo lại hình ảnh.', 'Không thể tạo lại')
     return
   }
 
@@ -373,11 +373,11 @@ async function regenerateHistoryImage(index: number) {
       regeneratingImages.value.delete(index)
     } else {
       regeneratingImages.value.delete(index)
-      error.value = normalizeApiError(result.error || result.error_message || '重新生成失败', '重新生成失败')
+      error.value = normalizeApiError(result.error || result.error_message || 'Tạo lại thất bại', 'Tạo lại thất bại')
     }
   } catch (e) {
     regeneratingImages.value.delete(index)
-    error.value = normalizeApiError(e, '重新生成失败')
+    error.value = normalizeApiError(e, 'Tạo lại thất bại')
   }
 }
 
@@ -410,24 +410,24 @@ async function handleScanAll() {
   try {
     const result = await scanAllTasks()
     if (result.success) {
-      let message = `扫描完成！\n`
-      message += `- 总任务数: ${result.total_tasks || 0}\n`
-      message += `- 同步成功: ${result.synced || 0}\n`
-      message += `- 同步失败: ${result.failed || 0}\n`
+      let message = `Quét hoàn tất!\n`
+      message += `- Tổng số tác vụ: ${result.total_tasks || 0}\n`
+      message += `- Đồng bộ thành công: ${result.synced || 0}\n`
+      message += `- Đồng bộ thất bại: ${result.failed || 0}\n`
 
       if (result.orphan_tasks && result.orphan_tasks.length > 0) {
-        message += `- 孤立任务（无记录）: ${result.orphan_tasks.length} 个\n`
+        message += `- Tác vụ mồ côi (không có bản ghi): ${result.orphan_tasks.length}\n`
       }
 
       successMessage.value = message
       await loadData()
       await loadStats()
     } else {
-      error.value = normalizeApiError(result.error || result.error_message || '扫描失败', '扫描失败')
+      error.value = normalizeApiError(result.error || result.error_message || 'Quét thất bại', 'Quét thất bại')
     }
   } catch (e) {
     console.error('扫描失败:', e)
-    error.value = normalizeApiError(e, '扫描失败')
+    error.value = normalizeApiError(e, 'Quét thất bại')
   } finally {
     isScanning.value = false
   }

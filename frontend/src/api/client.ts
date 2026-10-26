@@ -10,14 +10,14 @@ export function getApiErrorPayload(error: unknown, fallback: string): {
   if (axios.isAxiosError(error)) {
     if (error.code === 'ECONNABORTED') {
       return {
-        error: '请求超时，请检查网络连接',
-        error_message: '请求超时，请检查网络连接'
+        error: 'Yêu cầu quá thời gian, vui lòng kiểm tra kết nối mạng',
+        error_message: 'Yêu cầu quá thời gian, vui lòng kiểm tra kết nối mạng'
       }
     }
     if (!error.response) {
       return {
-        error: '网络连接失败，请检查网络设置',
-        error_message: '网络连接失败，请检查网络设置'
+        error: 'Kết nối mạng thất bại, vui lòng kiểm tra cài đặt mạng',
+        error_message: 'Kết nối mạng thất bại, vui lòng kiểm tra cài đặt mạng'
       }
     }
     const data = error.response.data || {}
@@ -48,7 +48,7 @@ export async function readSseResponse(
 ) {
   const reader = response.body?.getReader()
   if (!reader) {
-    throw new Error('无法读取响应流')
+    throw new Error('Không đọc được luồng phản hồi')
   }
 
   const decoder = new TextDecoder()

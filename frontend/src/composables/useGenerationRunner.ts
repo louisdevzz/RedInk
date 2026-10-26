@@ -47,7 +47,7 @@ export function useGenerationRunner(
           event.index,
           'error',
           undefined,
-          formatErrorMessage(event.error || event.message || '图片生成失败', '图片生成失败')
+          formatErrorMessage(event.error || event.message || 'Tạo hình ảnh thất bại', 'Tạo hình ảnh thất bại')
         )
       },
       (event) => {
@@ -64,7 +64,7 @@ export function useGenerationRunner(
       },
       (err) => {
         console.error('Stream Error:', err)
-        setError(normalizeApiError(err, '图片生成失败'))
+        setError(normalizeApiError(err, 'Tạo hình ảnh thất bại'))
       },
       store.userImages.length > 0 ? store.userImages : undefined,
       store.topic,

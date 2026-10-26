@@ -1,16 +1,33 @@
 <template>
   <div class="container">
     <div class="page-header">
-      <h1 class="page-title">系统设置</h1>
-      <p class="page-subtitle">配置文本生成和图片生成的 API 服务</p>
+      <h1 class="page-title">Cài đặt hệ thống</h1>
+      <p class="page-subtitle">Cấu hình dịch vụ API tạo văn bản và tạo hình ảnh</p>
     </div>
 
     <div v-if="loading" class="loading-container">
       <div class="spinner"></div>
-      <p>加载配置中...</p>
+      <p>Đang tải cấu hình...</p>
     </div>
 
     <div v-else class="settings-container">
+      <AntigravityAuthCard
+        :connected="authConnected"
+        :loggingIn="authLoggingIn"
+        :flow="authFlow"
+        :message="authMessage"
+        :authUrl="authUrl"
+        :credential="authCredential"
+        :accounts="authAccounts"
+        :textModels="authTextModels"
+        :imageModels="authImageModels"
+        :modelsLoading="authModelsLoading"
+        @login="startAuthLogin"
+        @logout="onAuthLogout"
+        @cancel="cancelAuthLogin"
+        @logout-account="onAuthLogoutAccount"
+        @unblock="onAuthUnblockAccount"
+      />
       <ErrorCard
         v-if="feedback?.type === 'error'"
         :error="feedback.error"
@@ -26,22 +43,22 @@
         aria-live="polite"
       >
         <span>{{ feedback.message }}</span>
-        <button type="button" @click="clearFeedback" aria-label="关闭提示">×</button>
+        <button type="button" @click="clearFeedback" aria-label="Đóng thông báo">×</button>
       </div>
 
       <!-- 文本生成配置 -->
       <div class="card">
         <div class="section-header">
           <div>
-            <h2 class="section-title">文本生成配置</h2>
-            <p class="section-desc">用于生成小红书图文大纲</p>
+            <h2 class="section-title">Cấu hình tạo văn bản</h2>
+            <p class="section-desc">Dùng để tạo dàn ý bài viết Xiaohongshu</p>
           </div>
           <button class="btn btn-small" @click="openAddTextModal">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <line x1="12" y1="5" x2="12" y2="19"></line>
               <line x1="5" y1="12" x2="19" y2="12"></line>
             </svg>
-            添加
+            Thêm
           </button>
         </div>
 
@@ -60,15 +77,15 @@
       <div class="card">
         <div class="section-header">
           <div>
-            <h2 class="section-title">图片生成配置</h2>
-            <p class="section-desc">用于生成小红书配图</p>
+            <h2 class="section-title">Cấu hình tạo hình ảnh</h2>
+            <p class="section-desc">Dùng để tạo hình ảnh minh họa Xiaohongshu</p>
           </div>
           <button class="btn btn-small" @click="openAddImageModal">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <line x1="12" y1="5" x2="12" y2="19"></line>
               <line x1="5" y1="12" x2="19" y2="12"></line>
             </svg>
-            添加
+            Thêm
           </button>
         </div>
 
@@ -92,6 +109,8 @@
       :testing="testingText"
       :typeOptions="textTypeOptions"
       providerCategory="text"
+      :oauthState="authCredential"
+      :modelSuggestions="authTextModels"
       @close="closeTextModal"
       @save="saveTextProvider"
       @test="testTextConnection"
@@ -105,6 +124,8 @@
       :formData="imageForm"
       :testing="testingImage"
       :typeOptions="imageTypeOptions"
+      :oauthState="authCredential"
+      :modelSuggestions="authImageModels"
       @close="closeImageModal"
       @save="saveImageProvider"
       @test="testImageConnection"
@@ -118,12 +139,14 @@ import { onMounted } from 'vue'
 import ProviderTable from '../components/settings/ProviderTable.vue'
 import ProviderModal from '../components/settings/ProviderModal.vue'
 import ImageProviderModal from '../components/settings/ImageProviderModal.vue'
+import AntigravityAuthCard from '../components/settings/AntigravityAuthCard.vue'
 import ErrorCard from '../components/common/ErrorCard.vue'
 import {
   useProviderForm,
   textTypeOptions,
   imageTypeOptions
 } from '../composables/useProviderForm'
+import { useAntigravityAuth } from '../composables/useAntigravityAuth'
 
 /**
  * 系统设置页面
@@ -183,8 +206,43 @@ const {
   updateImageForm
 } = useProviderForm()
 
+// Google 账号登录（Antigravity OAuth）：解构出 ref，模板才能自动解包
+const {
+  connected: authConnected,
+  loggingIn: authLoggingIn,
+  flow: authFlow,
+  message: authMessage,
+  authUrl,
+  credential: authCredential,
+  accounts: authAccounts,
+  textModels: authTextModels,
+  imageModels: authImageModels,
+  modelsLoading: authModelsLoading,
+  refreshStatus: refreshAuthStatus,
+  startLogin: startAuthLogin,
+  cancelLogin: cancelAuthLogin,
+  logout: logoutAuth,
+  logoutAccount: logoutAuthAccount,
+  unblockAccount: unblockAuthAccount
+} = useAntigravityAuth()
+
+async function onAuthLogout() {
+  await logoutAuth()
+  await loadConfig()
+}
+
+async function onAuthLogoutAccount(accountId: string) {
+  await logoutAuthAccount(accountId)
+  await loadConfig()
+}
+
+async function onAuthUnblockAccount(accountId: string) {
+  await unblockAuthAccount(accountId)
+}
+
 onMounted(() => {
   loadConfig()
+  refreshAuthStatus()
 })
 </script>
 

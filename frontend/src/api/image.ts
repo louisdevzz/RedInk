@@ -61,7 +61,7 @@ export async function retryFailedImages(
     })
 
     if (!response.ok) {
-      throw await readErrorResponse(response, `请求失败：HTTP ${response.status}`)
+      throw await readErrorResponse(response, `Yêu cầu thất bại: HTTP ${response.status}`)
     }
 
     await readSseResponse(response, {
@@ -111,7 +111,7 @@ export async function generateImagesPost(
     })
 
     if (!response.ok) {
-      throw await readErrorResponse(response, `请求失败：HTTP ${response.status}`)
+      throw await readErrorResponse(response, `Yêu cầu thất bại: HTTP ${response.status}`)
     }
 
     await readSseResponse(response, {

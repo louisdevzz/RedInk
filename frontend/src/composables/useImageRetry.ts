@@ -46,12 +46,12 @@ export function useImageRetry(setError: (error: AppError | null) => void) {
             index,
             'error',
             undefined,
-            formatErrorMessage(result.error || result.error_message || '重绘失败', '重绘失败')
+            formatErrorMessage(result.error || result.error_message || 'Vẽ lại thất bại', 'Vẽ lại thất bại')
           )
         }
       })
       .catch(e => {
-        store.updateProgress(index, 'error', undefined, formatErrorMessage(e, '重绘失败'))
+        store.updateProgress(index, 'error', undefined, formatErrorMessage(e, 'Vẽ lại thất bại'))
       })
       .finally(() => {
         regeneratingIndices.value.delete(index)
@@ -88,7 +88,7 @@ export function useImageRetry(setError: (error: AppError | null) => void) {
             event.index,
             'error',
             undefined,
-            formatErrorMessage(event.error || event.message || '补图失败', '补图失败')
+            formatErrorMessage(event.error || event.message || 'Tạo bổ sung ảnh thất bại', 'Tạo bổ sung ảnh thất bại')
           )
         },
         (event) => {
@@ -102,13 +102,13 @@ export function useImageRetry(setError: (error: AppError | null) => void) {
         (err) => {
           console.error('重试失败:', err)
           isRetrying.value = false
-          setError(normalizeApiError(err, '补图失败'))
+          setError(normalizeApiError(err, 'Tạo bổ sung ảnh thất bại'))
         },
         store.recordId
       )
     } catch (e) {
       isRetrying.value = false
-      setError(normalizeApiError(e, '补图失败'))
+      setError(normalizeApiError(e, 'Tạo bổ sung ảnh thất bại'))
     }
   }
 

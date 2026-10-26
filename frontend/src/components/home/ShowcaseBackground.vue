@@ -3,7 +3,7 @@
   <div class="showcase-background" :class="{ 'is-ready': isReady }">
     <div class="showcase-grid" :style="{ transform: `translateY(-${scrollOffset}px)` }">
       <div v-for="(image, index) in showcaseImages" :key="index" class="showcase-item">
-        <img :src="`/assets/showcase/${image}`" :alt="`封面 ${index + 1}`" loading="eager" />
+        <img :src="`/assets/showcase/${image}`" :alt="`Bìa ${index + 1}`" loading="eager" />
       </div>
     </div>
     <div class="showcase-overlay"></div>

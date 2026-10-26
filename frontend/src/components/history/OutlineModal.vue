@@ -3,7 +3,7 @@
   <div v-if="visible && pages" class="outline-modal-overlay" @click="$emit('close')">
     <div class="outline-modal-content" @click.stop>
       <div class="outline-modal-header">
-        <h3>完整大纲</h3>
+        <h3>Dàn ý đầy đủ</h3>
         <button class="close-icon" @click="$emit('close')">×</button>
       </div>
       <div class="outline-modal-body">
@@ -11,7 +11,7 @@
           <div class="outline-page-card-header">
             <span class="page-badge">P{{ idx + 1 }}</span>
             <span class="page-type-badge" :class="page.type">{{ getPageTypeName(page.type) }}</span>
-            <span class="word-count">{{ page.content.length }} 字</span>
+            <span class="word-count">{{ page.content.length }} từ</span>
           </div>
           <div class="outline-page-card-content">{{ page.content }}</div>
         </div>
@@ -53,11 +53,11 @@ defineEmits<{
  */
 function getPageTypeName(type: string): string {
   const names: Record<string, string> = {
-    cover: '封面',
-    content: '内容',
-    summary: '总结'
+    cover: 'Bìa',
+    content: 'Nội dung',
+    summary: 'Tổng kết'
   }
-  return names[type] || '内容'
+  return names[type] || 'Nội dung'
 }
 </script>
 

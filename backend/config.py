@@ -24,11 +24,9 @@ class Config:
         logger.debug(f"加载图片服务商配置: {config_path}")
 
         if not config_path.exists():
-            logger.warning(f"图片配置文件不存在: {config_path}，使用默认配置")
-            cls._image_providers_config = {
-                'active_provider': 'google_genai',
-                'providers': {}
-            }
+            logger.warning(f"图片配置文件不存在: {config_path}，使用默认配置（Google 账号登录）")
+            from backend.auth import default_image_providers
+            cls._image_providers_config = default_image_providers()
             return cls._image_providers_config
 
         try:
@@ -58,11 +56,9 @@ class Config:
         logger.debug(f"加载文本服务商配置: {config_path}")
 
         if not config_path.exists():
-            logger.warning(f"文本配置文件不存在: {config_path}，使用默认配置")
-            cls._text_providers_config = {
-                'active_provider': 'google_gemini',
-                'providers': {}
-            }
+            logger.warning(f"文本配置文件不存在: {config_path}，使用默认配置（Google 账号登录）")
+            from backend.auth import default_text_providers
+            cls._text_providers_config = default_text_providers()
             return cls._text_providers_config
 
         try:
@@ -121,18 +117,21 @@ class Config:
             )
 
         provider_config = providers[provider_name].copy()
-
-        # 验证必要字段
-        if not provider_config.get('api_key'):
-            logger.error(f"图片服务商 [{provider_name}] 未配置 API Key")
-            raise ValueError(
-                f"服务商 {provider_name} 未配置 API Key\n"
-                "解决方案：\n"
-                "1. 在系统设置页面编辑该服务商，填写 API Key\n"
-                "2. 或手动在 image_providers.yaml 中添加 api_key 字段"
-            )
-
         provider_type = provider_config.get('type', provider_name)
+
+        # OAuth 服务商（Google 账号登录）不需要 API Key，但必须已登录
+        from backend.auth import missing_credential_error, uses_oauth_auth
+
+        if not provider_config.get('api_key'):
+            if not uses_oauth_auth(provider_config):
+                logger.error(f"图片服务商 [{provider_name}] 未配置 API Key")
+                raise missing_credential_error(provider_name, provider_type)
+
+            from backend.auth.antigravity_credentials import connection_summary
+            if not connection_summary().get('connected'):
+                logger.error(f"图片服务商 [{provider_name}] 尚未登录 Google 账号")
+                raise missing_credential_error(provider_name, provider_type)
+
         if provider_type in ['openai', 'openai_compatible', 'image_api']:
             if not provider_config.get('base_url'):
                 logger.error(f"服务商 [{provider_name}] 类型为 {provider_type}，但未配置 base_url")

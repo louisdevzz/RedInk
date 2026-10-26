@@ -69,7 +69,7 @@ class GenAIClient:
         if not self.api_key:
             raise ValueError(
                 "Google Cloud API Key 未配置。\n"
-                "解决方案：在系统设置页面编辑该服务商，填写 API Key"
+                "【Giải pháp】Trong trang Cài đặt hệ thống, chỉnh sửa nhà cung cấp này và điền API Key."
             )
 
         # 构建客户端参数
@@ -227,18 +227,18 @@ class GenAIClient:
 
         if not image_data:
             raise ValueError(
-                "❌ 图片生成失败：API 返回为空\n\n"
-                "【可能原因】\n"
-                "1. 提示词触发了安全过滤（最常见）\n"
-                "2. 模型不支持当前的图片生成请求\n"
-                "3. 网络传输过程中数据丢失\n\n"
-                "【解决方案】\n"
-                "1. 修改提示词，避免敏感内容：\n"
-                "   - 避免涉及暴力、血腥、色情等内容\n"
-                "   - 避免涉及真实人物（明星、政治人物等）\n"
-                "   - 使用更中性、积极的描述\n"
-                "2. 尝试简化提示词\n"
-                "3. 检查网络连接后重试"
+                "❌ Tạo hình ảnh thất bại: API trả về rỗng (API 返回为空)\n\n"
+                "【Nguyên nhân có thể】\n"
+                "1. Prompt vi phạm bộ lọc chính sách an toàn (thường gặp nhất)\n"
+                "2. Model không hỗ trợ yêu cầu tạo hình ảnh hiện tại\n"
+                "3. Mất mát dữ liệu trong quá trình truyền tải 网络\n\n"
+                "【Giải pháp】\n"
+                "1. Chỉnh sửa prompt, tránh nội dung nhạy cảm:\n"
+                "   - Tránh nội dung bạo lực, phản cảm, đồi trụy\n"
+                "   - Tránh nhắc đến nhân vật đời thực (ngôi sao, chính trị gia...)\n"
+                "   - Sử dụng mô tả khách quan, tích cực hơn\n"
+                "2. Thử rút gọn và đơn giản hóa prompt\n"
+                "3. Kiểm tra kết nối 网络 rồi thử lại"
             )
 
         return image_data

@@ -13,7 +13,7 @@ export interface AppError {
 
 export type ErrorLike = AppError | string | Error | unknown
 
-export function normalizeApiError(error: ErrorLike, fallbackTitle = '操作失败'): AppError {
+export function normalizeApiError(error: ErrorLike, fallbackTitle = 'Thao tác thất bại'): AppError {
   if (isAppError(error)) return error
 
   if (axios.isAxiosError(error)) {
@@ -27,10 +27,10 @@ export function normalizeApiError(error: ErrorLike, fallbackTitle = '操作失�
     }
     if (!error.response) {
       return legacyMessageToError(
-        error.message || '网络连接失败',
-        '网络连接失败',
+        error.message || 'Kết nối mạng thất bại',
+        'Kết nối mạng thất bại',
         0,
-        '请确认后端服务已启动，并检查浏览器网络连接。'
+        'Vui lòng xác nhận dịch vụ backend đã khởi động và kiểm tra kết nối mạng của trình duyệt.'
       )
     }
     return legacyMessageToError(error.message, fallbackTitle, error.response.status)
@@ -48,10 +48,10 @@ export function normalizeApiError(error: ErrorLike, fallbackTitle = '操作失�
     return legacyMessageToError(error, fallbackTitle)
   }
 
-  return legacyMessageToError('请稍后重试；如果持续失败，请复制诊断信息反馈。', fallbackTitle)
+  return legacyMessageToError('Vui lòng thử lại sau; nếu tiếp tục thất bại, vui lòng sao chép thông tin chẩn đoán để phản hồi.', fallbackTitle)
 }
 
-export function formatErrorMessage(error: ErrorLike, fallbackTitle = '操作失败'): string {
+export function formatErrorMessage(error: ErrorLike, fallbackTitle = 'Thao tác thất bại'): string {
   const appError = normalizeApiError(error, fallbackTitle)
   return `${appError.title}：${appError.suggestion || appError.detail}`
 }
@@ -79,11 +79,11 @@ function isAppError(value: any): value is AppError {
 
 function legacyMessageToError(
   message: string,
-  fallbackTitle = '操作失败',
+  fallbackTitle = 'Thao tác thất bại',
   status = 500,
   suggestion?: string
 ): AppError {
-  const clean = message || '发生未知错误'
+  const clean = message || 'Đã xảy ra lỗi không xác định'
   const firstLine = clean.split('\n').map(line => line.trim()).find(Boolean) || fallbackTitle
 
   return {
@@ -116,14 +116,14 @@ function inferCode(message: string): string {
 function inferTitle(message: string, fallbackTitle: string): string {
   const code = inferCode(message)
   const titles: Record<string, string> = {
-    PROXY_UNAVAILABLE: '本机代理不可用',
-    NETWORK_FAKE_IP_TLS: '网络代理连接异常',
-    MODEL_ENDPOINT_MISMATCH: '模型与接口不匹配',
-    ENDPOINT_METHOD_MISMATCH: '接口路径或请求方法不匹配',
-    AUTH_OR_PERMISSION: 'API Key 或权限不可用',
-    RATE_LIMITED: '上游限流或配额不足',
-    NETWORK_TIMEOUT: '网络请求超时',
-    RESOURCE_NOT_FOUND: '资源不存在',
+    PROXY_UNAVAILABLE: 'Proxy cục bộ không khả dụng',
+    NETWORK_FAKE_IP_TLS: 'Kết nối proxy mạng bất thường',
+    MODEL_ENDPOINT_MISMATCH: 'Mô hình và giao diện không khớp',
+    ENDPOINT_METHOD_MISMATCH: 'Đường dẫn giao diện hoặc phương thức yêu cầu không khớp',
+    AUTH_OR_PERMISSION: 'API Key hoặc quyền hạn không khả dụng',
+    RATE_LIMITED: 'Giới hạn lưu lượng thượng nguồn hoặc không đủ hạn mức',
+    NETWORK_TIMEOUT: 'Yêu cầu mạng quá thời gian chờ',
+    RESOURCE_NOT_FOUND: 'Tài nguyên không tồn tại',
     UNKNOWN_ERROR: fallbackTitle
   }
   return titles[code] || fallbackTitle
@@ -132,15 +132,15 @@ function inferTitle(message: string, fallbackTitle: string): string {
 function inferSuggestion(message: string): string {
   const code = inferCode(message)
   const suggestions: Record<string, string> = {
-    PROXY_UNAVAILABLE: '请确认代理客户端已开启，且 HTTP/HTTPS 代理端口正在监听。',
-    NETWORK_FAKE_IP_TLS: '请确认代理客户端已开启，或关闭 Fake-IP DNS 后重试。',
-    MODEL_ENDPOINT_MISMATCH: '请在设置中换成支持当前接口的模型，或调整服务商 endpoint_type。',
-    ENDPOINT_METHOD_MISMATCH: '请确认该服务商支持 OpenAI 兼容接口，并检查 Base URL、/v1 路径和 endpoint_type。',
-    AUTH_OR_PERMISSION: '请检查 API Key、模型访问权限、账户余额和服务商配置。',
-    RATE_LIMITED: '请稍后重试，或降低并发/检查账户配额。',
-    NETWORK_TIMEOUT: '请检查网络、代理和服务商状态后重试。',
-    RESOURCE_NOT_FOUND: '请返回列表刷新后重试。',
-    UNKNOWN_ERROR: '请稍后重试；如果持续失败，请复制诊断信息反馈。'
+    PROXY_UNAVAILABLE: 'Vui lòng xác nhận ứng dụng proxy đã bật và cổng proxy HTTP/HTTPS đang lắng nghe.',
+    NETWORK_FAKE_IP_TLS: 'Vui lòng xác nhận ứng dụng proxy đã bật hoặc tắt Fake-IP DNS rồi thử lại.',
+    MODEL_ENDPOINT_MISMATCH: 'Vui lòng chuyển sang mô hình hỗ trợ giao diện hiện tại trong phần cài đặt hoặc điều chỉnh endpoint_type của nhà cung cấp.',
+    ENDPOINT_METHOD_MISMATCH: 'Vui lòng xác nhận nhà cung cấp này hỗ trợ giao diện tương thích OpenAI, đồng thời kiểm tra Base URL, đường dẫn /v1 và endpoint_type.',
+    AUTH_OR_PERMISSION: 'Vui lòng kiểm tra API Key, quyền truy cập mô hình, số dư tài khoản và cấu hình nhà cung cấp.',
+    RATE_LIMITED: 'Vui lòng thử lại sau hoặc giảm số lượng tác vụ đồng thời / kiểm tra hạn mức tài khoản.',
+    NETWORK_TIMEOUT: 'Vui lòng kiểm tra mạng, proxy và trạng thái nhà cung cấp rồi thử lại.',
+    RESOURCE_NOT_FOUND: 'Vui lòng quay lại danh sách và làm mới rồi thử lại.',
+    UNKNOWN_ERROR: 'Vui lòng thử lại sau; nếu tiếp tục thất bại, vui lòng sao chép thông tin chẩn đoán để phản hồi.'
   }
   return suggestions[code] || suggestions.UNKNOWN_ERROR
 }

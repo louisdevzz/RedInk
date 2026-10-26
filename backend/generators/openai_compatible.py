@@ -19,14 +19,14 @@ class OpenAICompatibleGenerator(ImageGeneratorBase):
             logger.error("OpenAI 兼容 API Key 未配置")
             raise ValueError(
                 "OpenAI 兼容 API Key 未配置。\n"
-                "解决方案：在系统设置页面编辑该服务商，填写 API Key"
+                "【Giải pháp】Trong trang Cài đặt hệ thống, chỉnh sửa nhà cung cấp này và điền API Key."
             )
 
         if not self.base_url:
             logger.error("OpenAI 兼容 API Base URL 未配置")
             raise ValueError(
                 "OpenAI 兼容 API Base URL 未配置。\n"
-                "解决方案：在系统设置页面编辑该服务商，填写 Base URL"
+                "【Giải pháp】Trong trang Cài đặt hệ thống, chỉnh sửa nhà cung cấp này và điền Base URL."
             )
 
         self.policy = ImageProviderPolicy.from_config(

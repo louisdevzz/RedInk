@@ -1,6 +1,8 @@
-生成小红书风格竖版图片（3:4比例）。
+Generate a Xiaohongshu (RedNote) style vertical image (3:4 ratio).
 
-页面类型：{page_type}
-页面内容：{page_content}
+**TEXT ON THE IMAGE — MANDATORY:** all rendered text must be in VIETNAMESE, exactly matching the page content below. Do not translate it into any other language.
 
-要求：清新精致、文字清晰、排版美观。
+Page type: {page_type}
+Page content: {page_content}
+
+Requirements: fresh and refined, crisp legible text, beautiful layout.

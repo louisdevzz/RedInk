@@ -26,12 +26,12 @@ def retry_on_429(max_retries=3, base_delay=2):
                             continue
                     raise
             raise Exception(
-                f"Text API 重试 {max_retries} 次后仍失败。\n"
-                "可能原因：\n"
-                "1. API持续限流或配额不足\n"
-                "2. 网络连接持续不稳定\n"
-                "3. API服务暂时不可用\n"
-                "建议：稍后再试，或联系API服务提供商"
+                f"Text API sau khi thử lại {max_retries} lần vẫn thất bại.\n"
+                "Nguyên nhân có thể:\n"
+                "1. API liên tục bị giới hạn tần suất hoặc hạn mức không đủ\n"
+                "2. 连接 kết nối 网络 không ổn định kéo dài\n"
+                "3. Dịch vụ API tạm thời không khả dụng\n"
+                "Khuyến nghị: Thử lại sau, hoặc liên hệ nhà cung cấp dịch vụ API"
             )
         return wrapper
     return decorator
@@ -44,8 +44,8 @@ class TextChatClient:
         self.api_key = api_key
         if not self.api_key:
             raise ValueError(
-                "Text API Key 未配置。\n"
-                "解决方案：在系统设置页面编辑文本生成服务商，填写 API Key"
+                "Text 未配置 API Key.\n"
+                "Giải pháp: Chỉnh sửa nhà cung cấp tạo văn bản trong trang Cài đặt hệ thống, điền API Key"
             )
 
         self.base_url = (base_url or "https://api.openai.com").rstrip('/')
@@ -170,68 +170,68 @@ class TextChatClient:
             # 根据状态码给出更详细的错误信息
             if status_code == 401:
                 raise Exception(
-                    "❌ API Key 认证失败\n\n"
-                    "【可能原因】\n"
-                    "1. API Key 无效或已过期\n"
-                    "2. API Key 格式错误（复制时可能包含空格）\n"
-                    "3. API Key 被禁用或删除\n\n"
-                    "【解决方案】\n"
-                    "1. 在系统设置页面检查 API Key 是否正确\n"
-                    "2. 重新获取 API Key\n"
-                    f"\n【请求地址】{self.chat_endpoint}"
+                    "❌ Xác thực API Key thất bại (未配置 API Key / 失效)\n\n"
+                    "【Nguyên nhân có thể】\n"
+                    "1. API Key không hợp lệ hoặc đã hết hạn\n"
+                    "2. Định dạng API Key bị sai (khi sao chép có thể dính khoảng trắng)\n"
+                    "3. API Key bị vô hiệu hóa hoặc xóa\n\n"
+                    "【Giải pháp】\n"
+                    "1. Kiểm tra lại API Key trong trang Cài đặt hệ thống xem đã chính xác chưa\n"
+                    "2. Lấy lại API Key mới\n"
+                    f"\n【Địa chỉ yêu cầu】{self.chat_endpoint}"
                 )
             elif status_code == 403:
                 raise Exception(
-                    "❌ 权限被拒绝\n\n"
-                    "【可能原因】\n"
-                    "1. API Key 没有访问该模型的权限\n"
-                    "2. 账户配额已用尽\n"
-                    "3. 区域限制\n\n"
-                    "【解决方案】\n"
-                    "1. 检查 API 权限配置\n"
-                    "2. 尝试使用其他模型\n"
-                    f"\n【原始错误】{error_detail[:200]}"
+                    "❌ Quyền truy cập bị từ chối\n\n"
+                    "【Nguyên nhân có thể】\n"
+                    "1. API Key không có quyền truy cập model này\n"
+                    "2. Hạn mức tài khoản đã dùng hết\n"
+                    "3. Giới hạn khu vực địa lý\n\n"
+                    "【Giải pháp】\n"
+                    "1. Kiểm tra cấu hình quyền hạn API\n"
+                    "2. Thử sử dụng model khác\n"
+                    f"\n【Lỗi gốc】{error_detail[:200]}"
                 )
             elif status_code == 404:
                 raise Exception(
-                    "❌ 模型不存在或 API 端点错误\n\n"
-                    "【可能原因】\n"
-                    f"1. 模型 '{model}' 不存在或已下线\n"
-                    "2. Base URL 配置错误\n\n"
-                    "【解决方案】\n"
-                    "1. 检查模型名称是否正确\n"
-                    "2. 检查 Base URL 配置\n"
-                    f"\n【请求地址】{self.chat_endpoint}"
+                    "❌ Model không tồn tại hoặc endpoint API bị sai\n\n"
+                    "【Nguyên nhân có thể】\n"
+                    f"1. Model '{model}' không tồn tại hoặc đã ngừng hỗ trợ\n"
+                    "2. Cấu hình Base URL bị sai\n\n"
+                    "【Giải pháp】\n"
+                    "1. Kiểm tra tên model đã đúng chưa\n"
+                    "2. Kiểm tra cấu hình Base URL\n"
+                    f"\n【Địa chỉ yêu cầu】{self.chat_endpoint}"
                 )
             elif status_code == 429:
                 raise Exception(
-                    "⏳ API 配额或速率限制\n\n"
-                    "【说明】\n"
-                    "请求频率过高或配额已用尽。\n\n"
-                    "【解决方案】\n"
-                    "1. 稍后再试（等待 1-2 分钟）\n"
-                    "2. 检查 API 配额使用情况\n"
-                    "3. 考虑升级计划获取更多配额"
+                    "⏳ Hạn mức hoặc giới hạn tần suất API (超时 / 限流)\n\n"
+                    "【Mô tả】\n"
+                    "Tần suất gửi yêu cầu quá cao hoặc hạn mức đã dùng hết.\n\n"
+                    "【Giải pháp】\n"
+                    "1. Thử lại sau (chờ 1-2 phút)\n"
+                    "2. Kiểm tra tình hình sử dụng hạn mức API\n"
+                    "3. Xem xét nâng cấp gói để có thêm hạn mức"
                 )
             elif status_code >= 500:
                 raise Exception(
-                    f"⚠️ API 服务器错误 ({status_code})\n\n"
-                    "【说明】\n"
-                    "这是服务端的临时故障，与您的配置无关。\n\n"
-                    "【解决方案】\n"
-                    "1. 稍等几分钟后重试\n"
-                    "2. 如果持续出现，检查服务商状态页"
+                    f"⚠️ Lỗi máy chủ API ({status_code})\n\n"
+                    "【Mô tả】\n"
+                    "Đây là sự cố tạm thời phía máy chủ, không liên quan đến cấu hình của bạn.\n\n"
+                    "【Giải pháp】\n"
+                    "1. Chờ vài phút rồi thử lại\n"
+                    "2. Nếu vẫn tiếp diễn, hãy kiểm tra trang trạng thái của nhà cung cấp"
                 )
             else:
                 raise Exception(
-                    f"❌ API 请求失败 (状态码: {status_code})\n\n"
-                    f"【原始错误】\n{error_detail}\n\n"
-                    f"【请求地址】{self.chat_endpoint}\n"
-                    f"【模型】{model}\n\n"
-                    "【通用解决方案】\n"
-                    "1. 检查 API Key 是否正确\n"
-                    "2. 检查 Base URL 配置\n"
-                    "3. 检查模型名称是否正确"
+                    f"❌ Yêu cầu API thất bại (mã trạng thái: {status_code})\n\n"
+                    f"【Lỗi gốc】\n{error_detail}\n\n"
+                    f"【Địa chỉ yêu cầu】{self.chat_endpoint}\n"
+                    f"【Model】{model}\n\n"
+                    "【Giải pháp chung】\n"
+                    "1. Kiểm tra API Key đã đúng chưa\n"
+                    "2. Kiểm tra cấu hình Base URL\n"
+                    "3. Kiểm tra tên model đã đúng chưa"
                 )
 
         result = response.json()
@@ -241,13 +241,13 @@ class TextChatClient:
             return result["choices"][0]["message"]["content"]
         else:
             raise Exception(
-                f"Text API 响应格式异常：未找到生成的文本。\n"
-                f"响应数据: {str(result)[:500]}\n"
-                "可能原因：\n"
-                "1. API返回格式与OpenAI标准不一致\n"
-                "2. 请求被拒绝或过滤\n"
-                "3. 模型输出为空\n"
-                "建议：检查API文档确认响应格式"
+                f"Định dạng phản hồi Text API bất thường: không tìm thấy văn bản được tạo.\n"
+                f"Dữ liệu phản hồi: {str(result)[:500]}\n"
+                "Nguyên nhân có thể:\n"
+                "1. Định dạng phản hồi của API không khớp với tiêu chuẩn OpenAI\n"
+                "2. Yêu cầu bị từ chối hoặc bị bộ lọc an toàn chặn\n"
+                "3. Model trả về nội dung rỗng\n"
+                "Khuyến nghị: Kiểm tra tài liệu API để xác nhận định dạng phản hồi"
             )
 
 
@@ -257,18 +257,23 @@ def get_text_chat_client(provider_config: dict):
 
     Args:
         provider_config: 服务商配置字典
-            - type: 'google_gemini' 或 'openai_compatible'
-            - api_key: API密钥
+            - type: 'google_gemini' / 'openai_compatible' / 'google_antigravity'
+            - api_key: API密钥（OAuth 服务商可省略）
             - base_url: API基础URL（可选）
             - endpoint_type: 自定义端点路径（可选）
 
     Returns:
-        GenAIClient 或 TextChatClient
+        AntigravityTextClient、GenAIClient 或 TextChatClient
     """
     provider_type = provider_config.get('type', 'openai_compatible')
     api_key = provider_config.get('api_key')
     base_url = provider_config.get('base_url')
     endpoint_type = provider_config.get('endpoint_type')
+
+    # Antigravity：Google 账号登录，不使用 API Key
+    if provider_type == 'google_antigravity' or provider_config.get('auth') == 'antigravity_oauth':
+        from .antigravity_text_client import get_antigravity_text_client
+        return get_antigravity_text_client(provider_config)
 
     if provider_type == 'google_gemini':
         from .genai_client import GenAIClient

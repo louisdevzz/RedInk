@@ -32,19 +32,20 @@ class OutlineService:
             except yaml.YAMLError as e:
                 logger.error(f"文本配置 YAML 解析失败: {e}")
                 raise ValueError(
-                    f"文本配置文件格式错误: text_providers.yaml\n"
-                    f"YAML 解析错误: {e}\n"
-                    "解决方案：检查 YAML 缩进和语法"
+                    f"Định dạng tệp cấu hình text_providers.yaml không hợp lệ\n"
+                    f"Lỗi phân tích YAML: {e}\n"
+                    "Giải pháp: Kiểm tra cú pháp và thụt lề YAML"
                 )
 
         logger.warning("text_providers.yaml 不存在，使用默认配置")
-        # 默认配置
+        # 默认走 Google 账号登录（Antigravity OAuth），无需 API Key
         return {
-            'active_provider': 'google_gemini',
+            'active_provider': 'antigravity',
             'providers': {
-                'google_gemini': {
-                    'type': 'google_gemini',
-                    'model': 'gemini-2.0-flash-exp',
+                'antigravity': {
+                    'type': 'google_antigravity',
+                    'auth': 'antigravity_oauth',
+                    'model': 'auto',
                     'temperature': 1.0,
                     'max_output_tokens': 8000
                 }
@@ -59,29 +60,29 @@ class OutlineService:
         if not providers:
             logger.error("未找到任何文本生成服务商配置")
             raise ValueError(
-                "未找到任何文本生成服务商配置。\n"
-                "解决方案：\n"
-                "1. 在系统设置页面添加文本生成服务商\n"
-                "2. 或手动编辑 text_providers.yaml 文件"
+                "未找到任何 cấu hình nhà cung cấp tạo văn bản.\n"
+                "Giải pháp:\n"
+                "1. Thêm nhà cung cấp tạo văn bản trong trang Cài đặt\n"
+                "2. Hoặc chỉnh sửa thủ công tệp text_providers.yaml"
             )
 
         if active_provider not in providers:
             available = ', '.join(providers.keys())
             logger.error(f"文本服务商 [{active_provider}] 不存在，可用: {available}")
             raise ValueError(
-                f"未找到文本生成服务商配置: {active_provider}\n"
-                f"可用的服务商: {available}\n"
-                "解决方案：在系统设置中选择一个可用的服务商"
+                f"未找到文本生成服务商配置: {active_provider} (không tồn tại/不存在)\n"
+                f"Nhà cung cấp khả dụng: {available}\n"
+                "Giải pháp: Chọn một nhà cung cấp khả dụng trong Cài đặt"
             )
 
         provider_config = providers.get(active_provider, {})
 
-        if not provider_config.get('api_key'):
+        # OAuth 服务商（Google 账号登录）不需要 API Key
+        from backend.auth import missing_credential_error, uses_oauth_auth
+
+        if not provider_config.get('api_key') and not uses_oauth_auth(provider_config):
             logger.error(f"文本服务商 [{active_provider}] 未配置 API Key")
-            raise ValueError(
-                f"文本服务商 {active_provider} 未配置 API Key\n"
-                "解决方案：在系统设置页面编辑该服务商，填写 API Key"
-            )
+            raise missing_credential_error(active_provider, provider_config.get('type'))
 
         logger.info(f"使用文本服务商: {active_provider} (type={provider_config.get('type')})")
         return get_text_chat_client(provider_config)
@@ -113,13 +114,19 @@ class OutlineService:
             page_type = "content"
             type_match = re.match(r"\[(\S+)\]", page_text)
             if type_match:
-                type_cn = type_match.group(1)
+                type_key = type_match.group(1).strip().lower()
                 type_mapping = {
                     "封面": "cover",
+                    "cover": "cover",
+                    "title": "cover",
                     "内容": "content",
+                    "content": "content",
                     "总结": "summary",
+                    "summary": "summary",
+                    "conclusion": "summary",
+                    "cta": "summary",
                 }
-                page_type = type_mapping.get(type_cn, "content")
+                page_type = type_mapping.get(type_key, "content")
 
             pages.append({
                 "index": index,

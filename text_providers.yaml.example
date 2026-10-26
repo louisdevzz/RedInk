@@ -1,32 +1,41 @@
-# 文本生成服务商配置
-# 复制此文件为 text_providers.yaml 并填写你的配置
+# Cấu hình nhà cung cấp tạo chữ
+# Sao chép tệp này thành text_providers.yaml rồi điền cấu hình của bạn
 
-# 当前激活的服务商（填写下方 providers 中的名称）
-active_provider: openai
+# Nhà cung cấp đang dùng (ghi đúng tên có trong providers bên dưới)
+active_provider: antigravity
 
-# 服务商列表
+# Danh sách nhà cung cấp
 providers:
-  # OpenAI 官方 API
+  # Google Antigravity (đăng nhập tài khoản Google, KHÔNG cần API Key)
+  # Bấm "Đăng nhập Google" ở trang Cài đặt để hoàn tất OAuth, sau đó dùng ngay
+  antigravity:
+    type: google_antigravity
+    auth: antigravity_oauth
+    model: gemini-3.1-pro-low   # hoặc 'auto' để tự chọn model mà tài khoản cung cấp
+    # base_url có thể bỏ trống; nếu điền sẽ buộc dùng endpoint Cloud Code Assist này
+    # base_url: https://daily-cloudcode-pa.googleapis.com
+
+  # OpenAI API chính thức
   openai:
     type: openai_compatible
     api_key: sk-xxxxxxxxxxxxxxxxxxxx
     base_url: https://api.openai.com/v1
     model: gpt-4o
 
-  # Google Gemini（原生接口）
+  # Google Gemini (giao thức gốc, cần API Key)
   gemini:
     type: google_gemini
     api_key: AIzaxxxxxxxxxxxxxxxxxxxxxxxxx
     model: gemini-2.0-flash
 
-  # 第三方 OpenAI 兼容接口示例（如 OneAPI、New API 等）
+  # Ví dụ giao thức OpenAI-compatible bên thứ ba (OneAPI, New API...)
   third_party:
     type: openai_compatible
     api_key: sk-xxxxxxxxxxxxxxxxxxxx
     base_url: https://your-api-endpoint.com
     model: gpt-4o
 
-  # 阿里云通义千问
+  # Alibaba Tongyi Qianwen
   qwen:
     type: openai_compatible
     api_key: sk-xxxxxxxxxxxxxxxxxxxx

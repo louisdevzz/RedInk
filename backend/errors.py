@@ -1,4 +1,4 @@
-"""统一 API 错误模型和分类器。"""
+"""统一 API 错误模型和分类器。用户可见文案使用中文 + 越南语关键词匹配，输出为越南语。"""
 from __future__ import annotations
 
 import json
@@ -38,8 +38,8 @@ class AppError:
 
     def to_message(self) -> str:
         if self.suggestion:
-            return f"{self.title}：{self.suggestion}"
-        return f"{self.title}：{self.detail}"
+            return f"{self.title}: {self.suggestion}"
+        return f"{self.title}: {self.detail}"
 
 
 def error_payload(error: Union[AppError, Exception, str], context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
@@ -84,24 +84,62 @@ def classify_error(error: Union[Exception, str], context: Optional[Dict[str, Any
     host = _extract_host(raw) or diagnostics.get("base_url") or diagnostics.get("host")
     endpoint = diagnostics.get("endpoint") or _extract_endpoint(raw)
 
+    # 配置缺失（未填 API Key / 未登录 Google 账号）——属于可自助修复的配置问题，
+    # 不能落到 UNKNOWN_ERROR + retryable，否则用户会反复重试同一个错误。
+    if _looks_like_missing_api_key(raw):
+        return AppError(
+            code="API_KEY_MISSING",
+            title="Thiếu API Key",
+            detail=upstream_message or _first_meaningful_line(raw) or "Nhà cung cấp chưa được cấu hình API Key.",
+            suggestion=(
+                "Vào Cài đặt để nhập API Key cho nhà cung cấp này, hoặc chuyển sang đăng nhập "
+                "Google (Antigravity) để dùng không cần API Key."
+            ),
+            status=400,
+            retryable=False,
+            diagnostics=diagnostics,
+        )
+
+    if _looks_like_missing_login(raw):
+        return AppError(
+            code="GOOGLE_SIGNIN_REQUIRED",
+            title="Chưa đăng nhập Google",
+            detail=upstream_message or _first_meaningful_line(raw) or "Nhà cung cấp Antigravity cần đăng nhập Google.",
+            suggestion="Vào Cài đặt → mục 'Đăng nhập Google (Antigravity)' và hoàn tất đăng nhập; không cần API Key.",
+            status=400,
+            retryable=False,
+            diagnostics=diagnostics,
+        )
+
+    if _looks_like_missing_provider_config(raw):
+        return AppError(
+            code="PROVIDER_NOT_CONFIGURED",
+            title="Chưa cấu hình nhà cung cấp",
+            detail=upstream_message or _first_meaningful_line(raw) or "Không tìm thấy cấu hình nhà cung cấp hợp lệ.",
+            suggestion="Vào Cài đặt để thêm nhà cung cấp và chọn nhà cung cấp đang hoạt động.",
+            status=400,
+            retryable=False,
+            diagnostics=diagnostics,
+        )
+
     if _looks_like_proxy_refused(text):
         return AppError(
             code="PROXY_UNAVAILABLE",
-            title="本机代理不可用",
-            detail="请求需要经过本机代理，但代理端口没有响应。",
-            suggestion="请确认代理客户端已开启，且 HTTP/HTTPS 代理端口正在监听；不使用代理时请关闭相关环境变量。",
+            title="Proxy cục bộ không khả dụng",
+            detail="Yêu cầu cần đi qua proxy cục bộ nhưng cổng proxy không phản hồi.",
+            suggestion="Kiểm tra ứng dụng proxy đang bật và cổng HTTP/HTTPS đang lắng nghe; nếu không dùng proxy hãy tắt biến môi trường liên quan.",
             status=400,
             retryable=True,
             diagnostics=diagnostics,
         )
 
     if _looks_like_fake_ip_tls(text):
-        detail = f"无法稳定连接到 {host}" if host else "上游 TLS 连接在握手阶段被断开。"
+        detail = f"Không thể kết nối ổn định tới {host}" if host else "Kết nối TLS với máy chủ bị ngắt khi bắt tay."
         return AppError(
             code="NETWORK_FAKE_IP_TLS",
-            title="网络代理连接异常",
+            title="Kết nối proxy/network bất thường",
             detail=detail,
-            suggestion="请确认代理客户端已开启，或关闭 Fake-IP DNS 后重试。",
+            suggestion="Hãy chắc chắn ứng dụng proxy đang bật, hoặc tắt chế độ Fake-IP DNS rồi thử lại.",
             status=400,
             retryable=True,
             diagnostics=diagnostics,
@@ -114,9 +152,9 @@ def classify_error(error: Union[Exception, str], context: Optional[Dict[str, Any
     ):
         return AppError(
             code="MODEL_ENDPOINT_MISMATCH",
-            title="模型与接口不匹配",
-            detail=upstream_message or "当前模型不支持 OpenAI Chat Completions 接口。",
-            suggestion="请在设置中换成支持该接口的文字模型，或调整该服务商的 endpoint_type。",
+            title="Model không khớp với endpoint",
+            detail=upstream_message or "Model hiện tại không hỗ trợ giao thức OpenAI Chat Completions.",
+            suggestion="Chọn model chữ khác có hỗ trợ giao thức này trong Cài đặt, hoặc chỉnh endpoint_type của nhà cung cấp.",
             status=400,
             retryable=False,
             diagnostics=diagnostics,
@@ -125,9 +163,9 @@ def classify_error(error: Union[Exception, str], context: Optional[Dict[str, Any
     if "unknown parameter" in text and "response_format" in text:
         return AppError(
             code="UPSTREAM_PARAM_UNSUPPORTED",
-            title="上游参数不兼容",
-            detail="服务商不支持 response_format 参数。",
-            suggestion="请移除该服务商配置里的 response_format，或使用已支持自动降级的新版本。",
+            title="Tham số không được hỗ trợ",
+            detail="Nhà cung cấp không hỗ trợ tham số response_format.",
+            suggestion="Hãy xoá response_format trong cấu hình nhà cung cấp, hoặc dùng phiên bản đã tự động hạ cấp.",
             status=400,
             retryable=True,
             diagnostics=diagnostics,
@@ -141,9 +179,9 @@ def classify_error(error: Union[Exception, str], context: Optional[Dict[str, Any
     ):
         return AppError(
             code="INVALID_REQUEST",
-            title="请求格式不正确",
-            detail=upstream_message or "请求体不是有效的 JSON，或 Content-Type 不符合接口要求。",
-            suggestion="请刷新页面后重试；如果是直接调用 API，请使用 application/json 并提交合法 JSON。",
+            title="Định dạng yêu cầu không hợp lệ",
+            detail=upstream_message or "Nội dung yêu cầu không phải JSON hợp lệ, hoặc Content-Type không đúng.",
+            suggestion="Hãy tải lại trang rồi thử lại; nếu gọi API trực tiếp, dùng application/json và JSON hợp lệ.",
             status=400,
             retryable=False,
             diagnostics=diagnostics,
@@ -153,9 +191,9 @@ def classify_error(error: Union[Exception, str], context: Optional[Dict[str, Any
         endpoint_text = f" {endpoint}" if endpoint else ""
         return AppError(
             code="ENDPOINT_METHOD_MISMATCH",
-            title="接口路径或请求方法不匹配",
-            detail=f"上游不接受当前请求{endpoint_text}，通常是 Base URL 或 endpoint_type 配置不对。",
-            suggestion="请确认该服务商支持 OpenAI 兼容接口，并检查 Base URL、/v1 路径和 endpoint_type 是否匹配服务商文档。",
+            title="Sai đường dẫn endpoint hoặc phương thức",
+            detail=f"Máy chủ không chấp nhận yêu cầu hiện tại{endpoint_text}, thường do Base URL hoặc endpoint_type.",
+            suggestion="Xác nhận nhà cung cấp hỗ trợ giao thức OpenAI-compatible và kiểm tra Base URL, đường dẫn /v1, endpoint_type theo tài liệu.",
             status=400,
             retryable=False,
             diagnostics=diagnostics,
@@ -171,9 +209,9 @@ def classify_error(error: Union[Exception, str], context: Optional[Dict[str, Any
     ]):
         return AppError(
             code="AUTH_OR_PERMISSION",
-            title="API Key 或权限不可用",
-            detail=upstream_message or "服务商拒绝了当前请求。",
-            suggestion="请检查 API Key、账户权限、模型访问权限和余额。",
+            title="API Key hoặc quyền không khả dụng",
+            detail=upstream_message or "Nhà cung cấp đã từ chối yêu cầu.",
+            suggestion="Kiểm tra API Key, quyền tài khoản, quyền truy cập model và số dư; hoặc đăng nhập Google (Antigravity).",
             status=401 if status == 401 else 403,
             retryable=False,
             diagnostics=diagnostics,
@@ -182,9 +220,9 @@ def classify_error(error: Union[Exception, str], context: Optional[Dict[str, Any
     if status == 429 or any(keyword in text for keyword in ["rate limit", "resource_exhausted", "quota", "配额", "限流"]):
         return AppError(
             code="RATE_LIMITED",
-            title="上游限流或配额不足",
-            detail=upstream_message or "服务商暂时拒绝了过多请求。",
-            suggestion="请稍后重试，或降低并发/检查账户配额。",
+            title="Bị giới hạn tần suất hoặc hết hạn mức",
+            detail=upstream_message or "Máy chủ tạm thời từ chối vì quá nhiều yêu cầu.",
+            suggestion="Thử lại sau ít phút, giảm song song, hoặc kiểm tra hạn mức tài khoản.",
             status=429,
             retryable=True,
             diagnostics=diagnostics,
@@ -193,9 +231,9 @@ def classify_error(error: Union[Exception, str], context: Optional[Dict[str, Any
     if status == 404 or ("model" in text and ("not found" in text or "不存在" in raw)):
         return AppError(
             code="MODEL_NOT_FOUND",
-            title="模型或接口不存在",
-            detail=upstream_message or "当前模型名称或接口地址无法访问。",
-            suggestion="请检查服务商 Base URL、endpoint_type 和模型名称。",
+            title="Không tìm thấy model hoặc endpoint",
+            detail=upstream_message or "Tên model hoặc địa chỉ endpoint hiện không truy cập được.",
+            suggestion="Kiểm tra Base URL, endpoint_type và tên model (với Antigravity cần dùng id model gốc, không có hậu tố trong ngoặc).",
             status=404,
             retryable=False,
             diagnostics=diagnostics,
@@ -204,9 +242,9 @@ def classify_error(error: Union[Exception, str], context: Optional[Dict[str, Any
     if status and status >= 500:
         return AppError(
             code="UPSTREAM_UNAVAILABLE",
-            title="上游服务异常",
-            detail=upstream_message or f"服务商返回 HTTP {status}。",
-            suggestion="请稍后重试；如果持续失败，请切换服务商或查看服务商状态。",
+            title="Máy chủ lỗi",
+            detail=upstream_message or f"Nhà cung cấp trả về HTTP {status}.",
+            suggestion="Thử lại sau; nếu vẫn lỗi hãy đổi nhà cung cấp hoặc kiểm tra tình trạng dịch vụ.",
             status=502,
             retryable=True,
             diagnostics=diagnostics,
@@ -215,9 +253,9 @@ def classify_error(error: Union[Exception, str], context: Optional[Dict[str, Any
     if _looks_like_timeout(text):
         return AppError(
             code="NETWORK_TIMEOUT",
-            title="网络请求超时",
-            detail=f"连接 {host} 超时。" if host else "请求等待时间过长。",
-            suggestion="请检查网络、代理和服务商状态后重试。",
+            title="Yêu cầu mạng quá thời gian",
+            detail=f"Kết nối tới {host} quá thời gian." if host else "Yêu cầu chờ quá lâu.",
+            suggestion="Kiểm tra mạng, proxy và tình trạng nhà cung cấp rồi thử lại.",
             status=504,
             retryable=True,
             diagnostics=diagnostics,
@@ -226,20 +264,31 @@ def classify_error(error: Union[Exception, str], context: Optional[Dict[str, Any
     if _looks_like_network(text):
         return AppError(
             code="NETWORK_ERROR",
-            title="网络连接失败",
-            detail=f"无法连接到 {host}。" if host else "无法连接到上游服务。",
-            suggestion="请检查网络连接、代理设置和 Base URL。",
+            title="Kết nối mạng thất bại",
+            detail=f"Không thể kết nối tới {host}." if host else "Không thể kết nối tới máy chủ.",
+            suggestion="Kiểm tra kết nối mạng, cấu hình proxy và Base URL.",
             status=502,
             retryable=True,
             diagnostics=diagnostics,
         )
 
-    if "历史记录不存在" in raw or "任务不存在" in raw or "不存在" in raw:
+    if "历史记录不存在" in raw or "任务不存在" in raw or "历史记录未找到" in raw:
         return AppError(
             code="RESOURCE_NOT_FOUND",
-            title="资源不存在",
-            detail=raw.split("\n", 1)[0],
-            suggestion="请返回历史列表刷新后重试。",
+            title="Không tìm thấy dữ liệu",
+            detail=_first_meaningful_line(raw),
+            suggestion="Quay lại danh sách lịch sử, tải lại trang rồi thử lại.",
+            status=404,
+            retryable=False,
+            diagnostics=diagnostics,
+        )
+
+    if "不存在" in raw or "not found" in text:
+        return AppError(
+            code="RESOURCE_NOT_FOUND",
+            title="Không tìm thấy dữ liệu",
+            detail=_first_meaningful_line(raw),
+            suggestion="Kiểm tra lại mục đang thao tác rồi thử lại.",
             status=404,
             retryable=False,
             diagnostics=diagnostics,
@@ -247,15 +296,55 @@ def classify_error(error: Union[Exception, str], context: Optional[Dict[str, Any
 
     return AppError(
         code="UNKNOWN_ERROR",
-        title="操作失败",
-        detail=_first_meaningful_line(raw) or "发生未知错误。",
-        suggestion="请稍后重试；如果持续失败，请复制诊断信息反馈。",
+        title="Thao tác thất bại",
+        detail=_first_meaningful_line(raw) or "Đã xảy ra lỗi không xác định.",
+        suggestion="Thử lại sau; nếu lỗi vẫn xảy ra hãy sao chép thông tin chẩn đoán để phản hồi.",
         status=500,
         retryable=True,
         diagnostics=diagnostics,
     )
 
 
+def _looks_like_missing_api_key(raw: str) -> bool:
+    lowered = raw.lower()
+    return any(token in lowered for token in [
+        "未配置 api key",
+        "未配置 api_key",
+        "api key 未配置",
+        "api key not configured",
+        "请填写 api key",
+        "chưa được cấu hình api key",
+        "chưa cấu hình api key",
+        "chưa có api key",
+        "thiếu api key",
+        "missing api key",
+    ])
+
+
+def _looks_like_missing_login(raw: str) -> bool:
+    lowered = raw.lower()
+    return (
+        "尚未登录" in raw
+        or "未登录 google" in raw
+        or "需要重新登录" in raw
+        or "google 登录已失效" in raw
+        or "chưa đăng nhập" in lowered
+        or "chưa login" in lowered
+        or "đăng nhập google" in lowered and "chưa" in lowered
+        or "please log in" in lowered
+    )
+
+
+def _looks_like_missing_provider_config(raw: str) -> bool:
+    lowered = raw.lower()
+    return (
+        "未找到任何" in raw
+        or "未找到服务商配置" in raw
+        or "未找到图片生成服务商配置" in raw
+        or "未找到文本生成服务商配置" in raw
+        or "不支持的图片生成服务商" in raw
+        or "not configured provider" in lowered
+    )
 def _sanitize_diagnostics(data: Dict[str, Any]) -> Dict[str, Any]:
     sanitized: Dict[str, Any] = {}
     for key, value in data.items():
@@ -272,7 +361,7 @@ def _sanitize_diagnostics(data: Dict[str, Any]) -> Dict[str, Any]:
 
 def _extract_status_and_message(raw: str) -> Tuple[Optional[int], Optional[str]]:
     status = None
-    status_match = re.search(r"(?:HTTP|状态码[:：]?)\s*[:：]?\s*(\d{3})", raw, re.IGNORECASE)
+    status_match = re.search(r"(?:HTTP|状态码|Trạng thái)\s*[:：]?\s*(\d{3})", raw, re.IGNORECASE)
     if status_match:
         status = int(status_match.group(1))
     else:
@@ -295,6 +384,8 @@ def _extract_status_and_message(raw: str) -> Tuple[Optional[int], Optional[str]]
             pass
 
     original_match = re.search(r"【原始错误】\s*([\s\S]+)", raw)
+    if not original_match:
+        original_match = re.search(r"Lỗi gốc:\s*([\s\S]+)", raw)
     if original_match:
         return status, _first_meaningful_line(original_match.group(1))
 
@@ -347,7 +438,7 @@ def _looks_like_fake_ip_tls(text: str) -> bool:
 
 
 def _looks_like_timeout(text: str) -> bool:
-    return "timeout" in text or "timed out" in text or "超时" in text
+    return "timeout" in text or "timed out" in text or "超时" in text or "quá thời gian" in text
 
 
 def _looks_like_network(text: str) -> bool:
@@ -360,12 +451,13 @@ def _looks_like_network(text: str) -> bool:
         "网络",
         "连接失败",
         "连接错误",
+        "kết nối mạng",
     ])
 
 
 def _first_meaningful_line(value: str) -> str:
     for line in value.splitlines():
-        stripped = line.strip(" \t\r\n-")
+        stripped = line.strip(" \t\r\n-❌⚠️⏳🌐🔒")
         if stripped:
             return stripped
     return ""

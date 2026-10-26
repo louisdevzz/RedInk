@@ -13,7 +13,7 @@
         :value="modelValue"
         @input="handleInput"
         class="composer-textarea"
-        placeholder="输入主题，例如：秋季显白美甲..."
+        placeholder="Nhập chủ đề, ví dụ: Làm móng sáng da mùa thu..."
         @keydown.enter.prevent="handleEnter"
         :disabled="loading"
         rows="1"
@@ -27,7 +27,7 @@
         :key="idx"
         class="uploaded-image-item"
       >
-        <img :src="img.preview" :alt="`图片 ${idx + 1}`" />
+        <img :src="img.preview" :alt="`Hình ảnh ${idx + 1}`" />
         <button class="remove-image-btn" @click="removeImage(idx)">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -36,14 +36,14 @@
         </button>
       </div>
       <div class="upload-hint">
-        这些图片将用于生成封面和内容参考
+        Những hình ảnh này sẽ được sử dụng để tạo bìa và tham khảo nội dung
       </div>
     </div>
 
     <!-- 工具栏 -->
     <div class="composer-toolbar">
       <div class="toolbar-left">
-        <label class="tool-btn" :class="{ 'active': uploadedImages.length > 0 }" title="上传参考图">
+        <label class="tool-btn" :class="{ 'active': uploadedImages.length > 0 }" title="Tải ảnh tham khảo">
           <input
             type="file"
             accept="image/*"
@@ -67,13 +67,13 @@
           :disabled="!modelValue.trim() || loading"
         >
           <span v-if="loading" class="spinner-sm"></span>
-          <span>{{ loading ? '生成中' : '生成大纲' }}</span>
+          <span>{{ loading ? 'Đang tạo' : 'Tạo dàn ý' }}</span>
         </button>
       </div>
     </div>
 
     <div v-if="loading" class="loading-hint" role="status" aria-live="polite">
-      请稍后，这一步大概要 15-30 秒左右。
+      Vui lòng đợi một lát, bước này mất khoảng 15-30 giây.
     </div>
   </div>
 </template>

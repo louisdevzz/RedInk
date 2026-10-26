@@ -113,10 +113,13 @@ def _validate_config_on_startup(logger):
             providers = list(text_config.get('providers', {}).keys())
             logger.info(f"✅ 文本生成配置: 激活={active}, 可用服务商={providers}")
 
-            # 检查激活的服务商是否有 API Key
+            # 检查激活的服务商凭证（OAuth 服务商看登录状态，不看 API Key）
+            from backend.auth import uses_oauth_auth
             if active in text_config.get('providers', {}):
                 provider = text_config['providers'][active]
-                if not provider.get('api_key'):
+                if uses_oauth_auth(provider):
+                    _log_oauth_login_state(logger, '文本', active, provider)
+                elif not provider.get('api_key'):
                     logger.warning(f"⚠️  文本服务商 [{active}] 未配置 API Key")
                 else:
                     logger.info(f"✅ 文本服务商 [{active}] API Key 已配置")
@@ -135,10 +138,13 @@ def _validate_config_on_startup(logger):
             providers = list(image_config.get('providers', {}).keys())
             logger.info(f"✅ 图片生成配置: 激活={active}, 可用服务商={providers}")
 
-            # 检查激活的服务商是否有 API Key
+            # 检查激活的服务商凭证（OAuth 服务商看登录状态，不看 API Key）
+            from backend.auth import uses_oauth_auth
             if active in image_config.get('providers', {}):
                 provider = image_config['providers'][active]
-                if not provider.get('api_key'):
+                if uses_oauth_auth(provider):
+                    _log_oauth_login_state(logger, '图片', active, provider)
+                elif not provider.get('api_key'):
                     logger.warning(f"⚠️  图片服务商 [{active}] 未配置 API Key")
                 else:
                     logger.info(f"✅ 图片服务商 [{active}] API Key 已配置")
@@ -148,6 +154,23 @@ def _validate_config_on_startup(logger):
         logger.warning("⚠️  image_providers.yaml 不存在，将使用默认配置")
 
     logger.info("✅ 配置检查完成")
+
+
+def _log_oauth_login_state(logger, label: str, provider_name: str, provider: dict):
+    """OAuth（Google 账号登录）服务商的启动检查。"""
+    from backend.auth.antigravity_credentials import connection_summary
+
+    summary = connection_summary()
+    if summary.get('connected'):
+        email = summary.get('email') or '未知账号'
+        logger.info(f"✅ {label}服务商 [{provider_name}] 已登录 Google 账号: {email}")
+        if not summary.get('project_id'):
+            logger.warning(f"⚠️  {label}服务商 [{provider_name}] 凭据缺少 project id，建议重新登录")
+    else:
+        logger.warning(
+            f"⚠️  {label}服务商 [{provider_name}] 使用 Google 账号登录，但当前尚未登录，"
+            f"请在系统设置页面完成登录"
+        )
 
 
 if __name__ == '__main__':

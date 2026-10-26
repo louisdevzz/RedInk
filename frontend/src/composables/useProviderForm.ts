@@ -13,6 +13,16 @@ import { normalizeApiError, type AppError } from '../utils/errors'
  */
 
 // 服务商数据类型
+export interface AntigravityCredentialState {
+  connected: boolean
+  email?: string | null
+  project_id?: string | null
+  expires_at?: number | null
+  expires_in_seconds?: number | null
+  can_refresh?: boolean
+  needs_relogin?: boolean
+}
+
 export interface Provider {
   type: string
   model: string
@@ -22,7 +32,10 @@ export interface Provider {
   endpoint_type?: string
   high_concurrency?: boolean
   short_prompt?: boolean
-  [key: string]: any
+  auth?: string
+  /** OAuth 登录状态（由后端只读返回，保存时会被剥离） */
+  oauth?: AntigravityCredentialState
+  [key: string]: unknown
 }
 
 // 服务商配置类型
@@ -57,16 +70,25 @@ export interface ImageProviderForm {
   _has_api_key: boolean
 }
 
+// OAuth 服务商类型（Google 账号登录，不需要 API Key）
+export const OAUTH_PROVIDER_TYPE = 'google_antigravity'
+
+export function isOauthProviderType(type?: string): boolean {
+  return type === OAUTH_PROVIDER_TYPE
+}
+
 // 文本服务商类型选项
 export const textTypeOptions = [
+  { value: 'google_antigravity', label: 'Google 账号登录 (Antigravity, không cần API Key)' },
   { value: 'google_gemini', label: 'Google Gemini' },
-  { value: 'openai_compatible', label: 'OpenAI 兼容接口' }
+  { value: 'openai_compatible', label: 'Giao diện tương thích OpenAI' }
 ]
 
 // 图片服务商类型选项
 export const imageTypeOptions = [
+  { value: 'google_antigravity', label: 'Google 账号登录 (Antigravity, không cần API Key)' },
   { value: 'google_genai', label: 'Google GenAI' },
-  { value: 'image_api', label: 'OpenAI 兼容接口' }
+  { value: 'image_api', label: 'Giao diện tương thích OpenAI' }
 ]
 
 /**
@@ -111,11 +133,11 @@ export function useProviderForm() {
   function createEmptyTextForm(): TextProviderForm {
     return {
       name: '',
-      type: 'openai_compatible',
+      type: OAUTH_PROVIDER_TYPE,
       api_key: '',
       api_key_masked: '',
       base_url: '',
-      model: '',
+      model: 'gemini-3.1-pro-low',
       endpoint_type: '/v1/chat/completions',
       _has_api_key: false
     }
@@ -127,11 +149,11 @@ export function useProviderForm() {
   function createEmptyImageForm(): ImageProviderForm {
     return {
       name: '',
-      type: 'image_api',
+      type: OAUTH_PROVIDER_TYPE,
       api_key: '',
       api_key_masked: '',
       base_url: '',
-      model: '',
+      model: 'auto',
       high_concurrency: false,
       short_prompt: false,
       endpoint_type: '/v1/images/generations',
@@ -153,10 +175,10 @@ export function useProviderForm() {
         }
         imageConfig.value = result.config.image_generation
       } else {
-        setError(result.error || result.error_message || '加载配置失败', '加载配置失败')
+        setError(result.error || result.error_message || 'Tải cấu hình thất bại', 'Tải cấu hình thất bại')
       }
     } catch (e) {
-      setError(e, '加载配置失败')
+      setError(e, 'Tải cấu hình thất bại')
     } finally {
       loading.value = false
     }
@@ -179,11 +201,11 @@ export function useProviderForm() {
       if (result.success) {
         // 重新加载配置以获取最新的脱敏 API Key
         await loadConfig()
-        setSuccess(result.message || '配置已保存')
+        setSuccess(result.message || 'Đã lưu cấu hình')
       }
     } catch (e) {
       console.error('自动保存失败:', e)
-      setError(e, '保存配置失败')
+      setError(e, 'Lưu cấu hình thất bại')
     }
   }
 
@@ -191,7 +213,7 @@ export function useProviderForm() {
     feedback.value = { type: 'success', message }
   }
 
-  function setError(error: unknown, fallbackTitle = '操作失败') {
+  function setError(error: unknown, fallbackTitle = 'Thao tác thất bại') {
     feedback.value = {
       type: 'error',
       error: normalizeApiError(error, fallbackTitle)
@@ -254,33 +276,40 @@ export function useProviderForm() {
     const name = editingTextProvider.value || textForm.value.name
 
     if (!name) {
-      setError('请填写服务商名称', '配置不完整')
+      setError('Vui lòng điền tên nhà cung cấp', 'Cấu hình chưa đầy đủ')
       return
     }
 
     if (!textForm.value.type) {
-      setError('请选择服务商类型', '配置不完整')
+      setError('Vui lòng chọn loại nhà cung cấp', 'Cấu hình chưa đầy đủ')
       return
     }
 
-    // 新增时必须填写 API Key
-    if (!editingTextProvider.value && !textForm.value.api_key) {
-      setError('请填写 API Key', '配置不完整')
+    const oauth = isOauthProviderType(textForm.value.type)
+
+    // OAuth 服务商走 Google 登录，不需要 API Key；其它类型新增时必须填 Key
+    if (!oauth && !editingTextProvider.value && !textForm.value.api_key) {
+      setError('Vui lòng điền API Key', 'Cấu hình chưa đầy đủ')
       return
     }
 
-    const existingProvider = textConfig.value.providers[name] || {}
+    const existingProvider: Partial<Provider> = textConfig.value.providers[name] || {}
 
-    const providerData: any = {
+    const providerData: Provider = {
       type: textForm.value.type,
       model: textForm.value.model
     }
 
-    // 如果填写了新的 API Key，使用新的；否则保留原有的
-    if (textForm.value.api_key) {
-      providerData.api_key = textForm.value.api_key
-    } else if (existingProvider.api_key) {
-      providerData.api_key = existingProvider.api_key
+    // OAuth 服务商标记 auth，让后端跳过 API Key 校验
+    if (oauth) {
+      providerData.auth = 'antigravity_oauth'
+    } else {
+      // 如果填写了新的 API Key，使用新的；否则保留原有的
+      if (textForm.value.api_key) {
+        providerData.api_key = textForm.value.api_key
+      } else if (existingProvider.api_key) {
+        providerData.api_key = existingProvider.api_key
+      }
     }
 
     if (textForm.value.base_url) {
@@ -302,7 +331,7 @@ export function useProviderForm() {
    * 删除文本服务商
    */
   async function deleteTextProvider(name: string) {
-    if (confirm(`确定要删除服务商 "${name}" 吗？`)) {
+    if (confirm(`Bạn có chắc chắn muốn xóa nhà cung cấp "${name}" không?`)) {
       delete textConfig.value.providers[name]
       if (textConfig.value.active_provider === name) {
         textConfig.value.active_provider = ''
@@ -326,10 +355,10 @@ export function useProviderForm() {
         model: textForm.value.model
       })
       if (result.success) {
-        setSuccess(result.message || '连接成功')
+        setSuccess(result.message || 'Kết nối thành công')
       }
     } catch (e: any) {
-      setError(e, '连接失败')
+      setError(e, 'Kết nối thất bại')
     } finally {
       testingText.value = false
     }
@@ -349,10 +378,10 @@ export function useProviderForm() {
         model: provider.model
       })
       if (result.success) {
-        setSuccess(`${name} 连接成功`)
+        setSuccess(`${name} Kết nối thành công`)
       }
     } catch (e: any) {
-      setError(e, `${name} 连接失败`)
+      setError(e, `${name} Kết nối thất bại`)
     }
   }
 
@@ -410,24 +439,26 @@ export function useProviderForm() {
     const name = editingImageProvider.value || imageForm.value.name
 
     if (!name) {
-      setError('请填写服务商名称', '配置不完整')
+      setError('Vui lòng điền tên nhà cung cấp', 'Cấu hình chưa đầy đủ')
       return
     }
 
     if (!imageForm.value.type) {
-      setError('请填写服务商类型', '配置不完整')
+      setError('Vui lòng chọn loại nhà cung cấp', 'Cấu hình chưa đầy đủ')
       return
     }
 
-    // 新增时必须填写 API Key
-    if (!editingImageProvider.value && !imageForm.value.api_key) {
-      setError('请填写 API Key', '配置不完整')
+    const oauth = isOauthProviderType(imageForm.value.type)
+
+    // OAuth 服务商走 Google 登录，不需要 API Key；其它类型新增时必须填 Key
+    if (!oauth && !editingImageProvider.value && !imageForm.value.api_key) {
+      setError('Vui lòng điền API Key', 'Cấu hình chưa đầy đủ')
       return
     }
 
-    const existingProvider = imageConfig.value.providers[name] || {}
+    const existingProvider: Partial<Provider> = imageConfig.value.providers[name] || {}
 
-    const providerData: any = {
+    const providerData: Provider = {
       ...existingProvider,
       type: imageForm.value.type,
       model: imageForm.value.model,
@@ -435,16 +466,20 @@ export function useProviderForm() {
       short_prompt: imageForm.value.short_prompt
     }
 
-    // 如果是 OpenAI 兼容接口，保存 endpoint_type
-    if (imageForm.value.type === 'image_api') {
-      providerData.endpoint_type = imageForm.value.endpoint_type
-    }
-
-    // 如果填写了新的 API Key，使用新的；否则保留原有的
-    if (imageForm.value.api_key) {
+    // OAuth 服务商标记 auth，让后端跳过 API Key 校验
+    if (oauth) {
+      providerData.auth = 'antigravity_oauth'
+      delete providerData.api_key
+      delete providerData.oauth
+    } else if (imageForm.value.api_key) {
       providerData.api_key = imageForm.value.api_key
     } else if (existingProvider.api_key) {
       providerData.api_key = existingProvider.api_key
+    }
+
+    // 如果是 OpenAI 兼容接口，保存 endpoint_type
+    if (imageForm.value.type === 'image_api') {
+      providerData.endpoint_type = imageForm.value.endpoint_type
     }
 
     if (imageForm.value.base_url) {
@@ -461,7 +496,7 @@ export function useProviderForm() {
    * 删除图片服务商
    */
   async function deleteImageProvider(name: string) {
-    if (confirm(`确定要删除服务商 "${name}" 吗？`)) {
+    if (confirm(`Bạn có chắc chắn muốn xóa nhà cung cấp "${name}" không?`)) {
       delete imageConfig.value.providers[name]
       if (imageConfig.value.active_provider === name) {
         imageConfig.value.active_provider = ''
@@ -485,10 +520,10 @@ export function useProviderForm() {
         model: imageForm.value.model
       })
       if (result.success) {
-        setSuccess(result.message || '连接成功')
+        setSuccess(result.message || 'Kết nối thành công')
       }
     } catch (e: any) {
-      setError(e, '连接失败')
+      setError(e, 'Kết nối thất bại')
     } finally {
       testingImage.value = false
     }
@@ -508,10 +543,10 @@ export function useProviderForm() {
         model: provider.model
       })
       if (result.success) {
-        setSuccess(`${name} 连接成功`)
+        setSuccess(`${name} Kết nối thành công`)
       }
     } catch (e: any) {
-      setError(e, `${name} 连接失败`)
+      setError(e, `${name} Kết nối thất bại`)
     }
   }
 

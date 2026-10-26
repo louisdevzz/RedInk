@@ -127,6 +127,7 @@ def prepare_providers_for_response(providers: dict) -> dict:
         dict: 处理后的服务商配置
     """
     result = {}
+    oauth_state = None
     for name, config in providers.items():
         provider_copy = config.copy()
 
@@ -138,6 +139,17 @@ def prepare_providers_for_response(providers: dict) -> dict:
         else:
             provider_copy['api_key_masked'] = ''
             provider_copy['api_key'] = ''
+
+        # OAuth 服务商：附带 Google 登录状态（token 本身不返回）
+        from backend.auth import uses_oauth_auth
+        if uses_oauth_auth(provider_copy):
+            if oauth_state is None:
+                try:
+                    from backend.auth.antigravity_credentials import connection_summary
+                    oauth_state = connection_summary()
+                except Exception:
+                    oauth_state = {'connected': False}
+            provider_copy['oauth'] = oauth_state
 
         result[name] = provider_copy
 

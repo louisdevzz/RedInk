@@ -7,6 +7,7 @@ API 路由模块
 - history_routes: 历史记录 CRUD API
 - config_routes: 配置管理 API
 - content_routes: 内容生成相关 API（标题、文案、标签）
+- auth_routes: Google 账号登录（Antigravity OAuth）API
 
 所有路由都注册到统一的 /api 前缀下
 """
@@ -27,7 +28,7 @@ def create_api_blueprint():
     from .image_routes import create_image_blueprint
     from .history_routes import create_history_blueprint
     from .config_routes import create_config_blueprint
-    from .content_routes import create_content_blueprint
+    from .auth_routes import create_auth_blueprint
 
     # 创建主 API 蓝图
     api_bp = Blueprint('api', __name__, url_prefix='/api')
@@ -37,7 +38,7 @@ def create_api_blueprint():
     api_bp.register_blueprint(create_image_blueprint())
     api_bp.register_blueprint(create_history_blueprint())
     api_bp.register_blueprint(create_config_blueprint())
-    api_bp.register_blueprint(create_content_blueprint())
+    api_bp.register_blueprint(create_auth_blueprint())
 
     return api_bp
 

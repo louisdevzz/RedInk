@@ -88,6 +88,77 @@ export interface Config {
   }
 }
 
+export interface AntigravityCredentialState {
+  connected: boolean
+  email?: string | null
+  project_id?: string | null
+  expires_at?: number | null
+  expires_in_seconds?: number | null
+  can_refresh?: boolean
+  needs_relogin?: boolean
+  account_id?: string | null
+  account_count?: number
+  healthy_count?: number
+  cooling_down_count?: number
+  dead_count?: number
+  accounts?: AntigravityAccount[]
+  recovered_at?: number | null
+}
+
+export interface AntigravityAccount {
+  id: string
+  email?: string | null
+  project_id?: string | null
+  connected: boolean
+  dead: boolean
+  cooling_down: boolean
+  blocked_until?: number | null
+  block_reason?: string | null
+  last_error?: string | null
+  can_refresh?: boolean
+  expires_at?: number | null
+  expires_in_seconds?: number | null
+  last_used?: number | null
+  updated_at?: number | null
+}
+
+export interface AntigravityLoginStatus {
+  success: boolean
+  flow?: 'idle' | 'waiting' | 'provisioning' | 'connected' | 'failed' | 'cancelled'
+  message?: string
+  auth_url?: string | null
+  error?: string | null
+  connected?: boolean
+  credential?: AntigravityCredentialState
+}
+
+export interface AntigravityAccountsResponse {
+  success: boolean
+  accounts: AntigravityAccount[]
+  message?: string
+}
+
+export interface AntigravityModels {
+  success: boolean
+  text_models?: string[]
+  image_models?: string[]
+}
+
+export interface AntigravityQuotaBucket {
+  bucket_id?: string | null
+  remaining_fraction?: number | null
+  reset_time?: string | null
+  disabled?: boolean | null
+}
+
+export interface AntigravityQuota {
+  success: boolean
+  quota?: {
+    groups: Array<{ group_id?: string | null; buckets: AntigravityQuotaBucket[] }>
+    error?: string
+  }
+}
+
 export interface ContentResponse {
   success: boolean
   titles?: string[]

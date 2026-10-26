@@ -32,247 +32,247 @@ def parse_genai_error(error: Exception) -> str:
     if "401" in error_str or "unauthenticated" in error_str:
         if "api key" in error_str and "not supported" in error_str:
             return (
-                "❌ API Key 认证失败：Vertex AI 不支持 API Key\n\n"
-                "【错误原因】\n"
-                "您可能误用了 Vertex AI 模式，该模式需要 OAuth2 认证而非 API Key。\n\n"
-                "【解决方案】\n"
-                "1. 如果您使用 Google AI Studio 的 API Key：\n"
-                "   - 确保在设置中没有配置 base_url（留空即可）\n"
-                "   - API Key 获取地址: https://aistudio.google.com/app/apikey\n\n"
-                "2. 如果您使用 Google Cloud 的 API Key：\n"
-                "   - 确保 API Key 已启用 Generative Language API\n"
-                "   - 在 Google Cloud Console 检查 API 权限\n\n"
-                "3. 如果您确实需要使用 Vertex AI：\n"
-                "   - Vertex AI 需要 Service Account 认证，不支持 API Key\n"
-                "   - 请参考文档配置 Application Default Credentials"
+                "❌ Xác thực API Key thất bại: Vertex AI không hỗ trợ API Key\n\n"
+                "【Nguyên nhân】\n"
+                "Bạn có thể đã dùng nhầm chế độ Vertex AI, chế độ này yêu cầu xác thực OAuth2 thay vì API Key.\n\n"
+                "【Giải pháp】\n"
+                "1. Nếu bạn sử dụng API Key của Google AI Studio:\n"
+                "   - Đảm bảo trong Cài đặt không cấu hình base_url (để trống)\n"
+                "   - Địa chỉ lấy API Key: https://aistudio.google.com/app/apikey\n\n"
+                "2. Nếu bạn sử dụng API Key của Google Cloud:\n"
+                "   - Đảm bảo API Key đã kích hoạt Generative Language API\n"
+                "   - Kiểm tra quyền API trong Google Cloud Console\n\n"
+                "3. Nếu bạn thực sự cần dùng Vertex AI:\n"
+                "   - Vertex AI yêu cầu xác thực Service Account, không hỗ trợ API Key\n"
+                "   - Vui lòng tham khảo tài liệu để cấu hình Application Default Credentials"
             )
         else:
             return (
-                "❌ API Key 认证失败\n\n"
-                "【可能原因】\n"
-                "1. API Key 无效或已过期\n"
-                "2. API Key 格式错误（复制时可能包含空格）\n"
-                "3. API Key 被禁用或删除\n\n"
-                "【解决方案】\n"
-                "1. 检查 API Key 是否正确复制（无多余空格）\n"
-                "2. 前往 Google AI Studio 重新生成 API Key:\n"
+                "❌ Xác thực API Key thất bại\n\n"
+                "【Nguyên nhân có thể】\n"
+                "1. API Key không hợp lệ hoặc đã hết hạn\n"
+                "2. Định dạng API Key sai (có thể chứa khoảng trắng khi copy)\n"
+                "3. API Key bị vô hiệu hóa hoặc xóa\n\n"
+                "【Giải pháp】\n"
+                "1. Kiểm tra API Key đã được copy chính xác chưa (không chứa khoảng trắng thừa)\n"
+                "2. Đến Google AI Studio tạo lại API Key:\n"
                 "   https://aistudio.google.com/app/apikey\n"
-                "3. 确保 API Key 对应的项目已启用相关 API"
+                "3. Đảm bảo dự án tương ứng với API Key đã bật các API liên quan"
             )
 
     # 403 权限错误
     if "403" in error_str or "permission_denied" in error_str or "forbidden" in error_str:
         if "billing" in error_str or "quota" in error_str:
             return (
-                "❌ 权限被拒绝：计费未启用或配额不足\n\n"
-                "【解决方案】\n"
-                "1. 检查 Google Cloud 项目是否已启用计费\n"
-                "2. 检查 API 配额是否已用尽\n"
-                "3. 如果是免费试用账户，可能有使用限制"
+                "❌ Quyền hạn bị từ chối: Chưa bật thanh toán hoặc hạn mức 配额 không đủ\n\n"
+                "【Giải pháp】\n"
+                "1. Kiểm tra dự án Google Cloud đã kích hoạt thanh toán (billing) chưa\n"
+                "2. Kiểm tra hạn mức 配额 của API đã dùng hết chưa\n"
+                "3. Nếu là tài khoản dùng thử miễn phí, có thể bị giới hạn sử dụng"
             )
         elif "region" in error_str or "location" in error_str:
             return (
-                "❌ 权限被拒绝：区域限制\n\n"
-                "【解决方案】\n"
-                "1. 某些 API 可能在您的地区不可用\n"
-                "2. 尝试使用代理或配置 base_url 指向可用区域"
+                "❌ Quyền hạn bị từ chối: Giới hạn khu vực địa lý\n\n"
+                "【Giải pháp】\n"
+                "1. Một số API có thể không khả dụng tại khu vực của bạn\n"
+                "2. Thử dùng proxy hoặc cấu hình base_url trỏ tới khu vực khả dụng"
             )
         else:
             return (
-                "❌ 权限被拒绝\n\n"
-                "【可能原因】\n"
-                "1. API Key 没有访问该模型的权限\n"
-                "2. 模型可能需要特殊权限或白名单\n"
-                "3. 项目配额或限制\n\n"
-                "【解决方案】\n"
-                "1. 检查 Google Cloud Console 中的 API 权限\n"
-                "2. 确认模型是否对您的账户开放\n"
-                "3. 尝试使用其他模型（如 gemini-2.0-flash-exp）"
+                "❌ Quyền hạn bị từ chối\n\n"
+                "【Nguyên nhân có thể】\n"
+                "1. API Key không có quyền truy cập model này\n"
+                "2. Model có thể yêu cầu quyền đặc biệt hoặc whitelist\n"
+                "3. Hạn mức 配额 hoặc giới hạn của dự án\n\n"
+                "【Giải pháp】\n"
+                "1. Kiểm tra quyền hạn API trong Google Cloud Console\n"
+                "2. Xác nhận model đã được mở cho tài khoản của bạn chưa\n"
+                "3. Thử đổi sang model khác (ví dụ: gemini-2.0-flash-exp)"
             )
 
     # 404 资源不存在
     if "404" in error_str or "not_found" in error_str or "not found" in error_str:
         if "model" in error_str:
             return (
-                "❌ 模型不存在\n\n"
-                "【可能原因】\n"
-                "1. 模型名称拼写错误\n"
-                "2. 该模型已下线或更名\n"
-                "3. 该模型尚未在您的区域开放\n\n"
-                "【解决方案】\n"
-                "1. 检查模型名称是否正确\n"
-                "2. 推荐使用的图片生成模型：\n"
-                "   - imagen-3.0-generate-002（推荐）\n"
+                "❌ Model không tồn tại 不存在\n\n"
+                "【Nguyên nhân có thể】\n"
+                "1. Tên model bị viết sai\n"
+                "2. Model này đã ngừng cung cấp hoặc đổi tên\n"
+                "3. Model này chưa được mở tại khu vực của bạn\n\n"
+                "【Giải pháp】\n"
+                "1. Kiểm tra tên model đã chính xác chưa\n"
+                "2. Các model tạo ảnh khuyên dùng:\n"
+                "   - imagen-3.0-generate-002 (khuyên dùng)\n"
                 "   - gemini-2.0-flash-exp-image-generation\n"
-                "3. 查看官方文档获取最新可用模型列表"
+                "3. Xem tài liệu chính thức để lấy danh sách model khả dụng mới nhất"
             )
         else:
             return (
-                "❌ 请求的资源不存在\n\n"
+                "❌ Tài nguyên được yêu cầu không tồn tại 不存在\n\n"
                 f"【原始错误】{error_original[:200]}\n\n"
-                "【解决方案】检查 API 端点和参数配置"
+                "【Giải pháp】Kiểm tra cấu hình endpoint API và tham số"
             )
 
     # 429 速率限制/配额用尽
     if "429" in error_str or "resource_exhausted" in error_str or "quota" in error_str:
         if "per minute" in error_str or "rpm" in error_str:
             return (
-                "⏳ 请求频率超限（RPM 限制）\n\n"
-                "【说明】\n"
-                "您的请求频率超过了每分钟限制。\n\n"
-                "【解决方案】\n"
-                "1. 稍等片刻后重试\n"
-                "2. 在设置中关闭「高并发模式」\n"
-                "3. 减少同时生成的图片数量"
+                "⏳ Tần suất yêu cầu vượt giới hạn 限流 (giới hạn RPM)\n\n"
+                "【Mô tả】\n"
+                "Tần suất gửi yêu cầu của bạn đã vượt quá giới hạn mỗi phút.\n\n"
+                "【Giải pháp】\n"
+                "1. Chờ giây lát rồi thử lại\n"
+                "2. Tắt chế độ đồng thời cao trong Cài đặt\n"
+                "3. Giảm số lượng hình ảnh tạo đồng thời"
             )
         elif "per day" in error_str or "daily" in error_str:
             return (
-                "⏳ 每日配额已用尽\n\n"
-                "【说明】\n"
-                "您今天的 API 调用次数已达上限。\n\n"
-                "【解决方案】\n"
-                "1. 等待明天配额重置（通常在 UTC 0:00）\n"
-                "2. 升级到付费计划获取更多配额\n"
-                "3. 使用其他 API Key"
+                "⏳ Hạn mức 配额 hàng ngày đã dùng hết\n\n"
+                "【Mô tả】\n"
+                "Số lượt gọi API hôm nay của bạn đã chạm mức tối đa.\n\n"
+                "【Giải pháp】\n"
+                "1. Chờ reset hạn mức 配额 ngày mai (thường vào UTC 0:00)\n"
+                "2. Nâng cấp lên gói trả phí để có thêm hạn mức 配额\n"
+                "3. Sử dụng API Key khác"
             )
         else:
             return (
-                "⏳ API 配额或速率限制\n\n"
-                "【可能原因】\n"
-                "1. 请求频率过高\n"
-                "2. 免费配额已用尽\n"
-                "3. 账户配额达到上限\n\n"
-                "【解决方案】\n"
-                "1. 稍后再试（通常等待 1-2 分钟）\n"
-                "2. 检查 Google Cloud Console 中的配额使用情况\n"
-                "3. 考虑升级计划或申请更多配额"
+                "⏳ Hạn mức 配额 hoặc giới hạn tần suất 限流 của API\n\n"
+                "【Nguyên nhân có thể】\n"
+                "1. Tần suất gửi yêu cầu quá cao\n"
+                "2. Hạn mức 配额 miễn phí đã dùng hết\n"
+                "3. Hạn mức 配额 tài khoản đã chạm ngưỡng tối đa\n\n"
+                "【Giải pháp】\n"
+                "1. Thử lại sau (thường chờ 1-2 phút)\n"
+                "2. Kiểm tra tình hình sử dụng hạn mức 配额 trong Google Cloud Console\n"
+                "3. Cân nhắc nâng cấp gói hoặc đăng ký thêm hạn mức 配额"
             )
 
     # 400 参数错误
     if "400" in error_str or "invalid_argument" in error_str or "invalid" in error_str:
         if "image" in error_str and ("size" in error_str or "large" in error_str):
             return (
-                "❌ 图片参数错误：图片尺寸过大\n\n"
-                "【解决方案】\n"
-                "参考图片会自动压缩，但如果仍报错，请尝试上传更小的图片"
+                "❌ Lỗi tham số hình ảnh: Kích thước ảnh quá lớn\n\n"
+                "【Giải pháp】\n"
+                "Ảnh tham khảo sẽ được tự động nén, nhưng nếu vẫn báo lỗi, vui lòng thử tải lên ảnh nhỏ hơn"
             )
         elif "prompt" in error_str or "content" in error_str:
             return (
-                "❌ 提示词参数错误\n\n"
-                "【可能原因】\n"
-                "1. 提示词过长\n"
-                "2. 提示词包含不支持的字符\n"
-                "3. 提示词触发了内容过滤\n\n"
-                "【解决方案】\n"
-                "1. 尝试缩短提示词\n"
-                "2. 移除特殊字符或敏感内容\n"
-                "3. 使用更中性的描述"
+                "❌ Lỗi tham số prompt\n\n"
+                "【Nguyên nhân có thể】\n"
+                "1. Prompt quá dài\n"
+                "2. Prompt chứa ký tự không được hỗ trợ\n"
+                "3. Prompt vi phạm bộ lọc nội dung\n\n"
+                "【Giải pháp】\n"
+                "1. Thử rút ngắn prompt\n"
+                "2. Loại bỏ ký tự đặc biệt hoặc nội dung nhạy cảm\n"
+                "3. Sử dụng mô tả khách quan, trung tính hơn"
             )
         else:
             return (
-                f"❌ 请求参数错误\n\n"
+                f"❌ Lỗi tham số yêu cầu\n\n"
                 f"【原始错误】{error_original[:300]}\n\n"
-                "【解决方案】检查请求参数是否正确"
+                "【Giải pháp】Kiểm tra tham số yêu cầu đã chính xác chưa"
             )
 
     # 安全过滤
     if "safety" in error_str or "blocked" in error_str or "filter" in error_str:
         return (
-            "🛡️ 内容被安全过滤器拦截\n\n"
-            "【说明】\n"
-            "您的提示词或生成内容触发了 Google 的安全过滤机制。\n\n"
-            "【解决方案】\n"
-            "1. 修改提示词，使用更中性的描述\n"
-            "2. 避免涉及敏感话题的内容\n"
-            "3. 尝试换一种表达方式描述相同内容"
+            "🛡️ Nội dung bị bộ lọc an toàn chặn\n\n"
+            "【Mô tả】\n"
+            "Prompt hoặc nội dung được tạo của bạn đã kích hoạt cơ chế lọc an toàn của Google.\n\n"
+            "【Giải pháp】\n"
+            "1. Chỉnh sửa prompt, sử dụng mô tả trung tính hơn\n"
+            "2. Tránh các chủ đề nhạy cảm\n"
+            "3. Thử diễn đạt lại nội dung theo cách khác"
         )
 
     # 图片生成特定错误
     if "could not generate" in error_str or "unable to generate" in error_str:
         return (
-            "❌ 模型无法生成图片\n\n"
-            "【可能原因】\n"
-            "1. 该模型不支持图片生成功能\n"
-            "2. 提示词过于复杂或模糊\n"
-            "3. 模型暂时不可用\n\n"
-            "【解决方案】\n"
-            "1. 确认使用支持图片生成的模型：\n"
+            "❌ Model không thể tạo hình ảnh\n\n"
+            "【Nguyên nhân có thể】\n"
+            "1. Model này không hỗ trợ tính năng tạo ảnh\n"
+            "2. Prompt quá phức tạp hoặc mơ hồ\n"
+            "3. Model tạm thời không khả dụng\n\n"
+            "【Giải pháp】\n"
+            "1. Xác nhận sử dụng model hỗ trợ tạo ảnh:\n"
             "   - imagen-3.0-generate-002\n"
             "   - gemini-2.0-flash-exp-image-generation\n"
-            "2. 简化提示词描述\n"
-            "3. 稍后再试"
+            "2. Đơn giản hóa mô tả trong prompt\n"
+            "3. Thử lại sau"
         )
 
     # 500 服务器错误
     if "500" in error_str or "internal" in error_str:
         return (
-            "⚠️ Google API 服务器内部错误\n\n"
-            "【说明】\n"
-            "这是 Google 服务端的临时故障，与您的配置无关。\n\n"
-            "【解决方案】\n"
-            "1. 稍等几分钟后重试\n"
-            "2. 如果持续出现，可检查 Google Cloud Status"
+            "⚠️ Lỗi nội bộ máy chủ Google API\n\n"
+            "【Mô tả】\n"
+            "Đây là sự cố tạm thời phía máy chủ Google, không liên quan đến cấu hình của bạn.\n\n"
+            "【Giải pháp】\n"
+            "1. Chờ vài phút rồi thử lại\n"
+            "2. Nếu vẫn tiếp diễn, bạn có thể kiểm tra Google Cloud Status"
         )
 
     # 503 服务不可用
     if "503" in error_str or "unavailable" in error_str:
         return (
-            "⚠️ Google API 服务暂时不可用\n\n"
-            "【说明】\n"
-            "服务正在维护或临时过载。\n\n"
-            "【解决方案】\n"
-            "1. 稍等几分钟后重试\n"
-            "2. 检查 Google Cloud Status 了解服务状态"
+            "⚠️ Dịch vụ Google API tạm thời không khả dụng\n\n"
+            "【Mô tả】\n"
+            "Dịch vụ đang bảo trì hoặc tạm thời quá tải.\n\n"
+            "【Giải pháp】\n"
+            "1. Chờ vài phút rồi thử lại\n"
+            "2. Kiểm tra Google Cloud Status để biết trạng thái dịch vụ"
         )
 
     # 网络错误
     if "timeout" in error_str or "timed out" in error_str:
         return (
-            "⏱️ 请求超时\n\n"
-            "【可能原因】\n"
-            "1. 网络连接不稳定\n"
-            "2. API 服务响应缓慢\n"
-            "3. 图片生成耗时过长\n\n"
-            "【解决方案】\n"
-            "1. 检查网络连接\n"
-            "2. 重试请求\n"
-            "3. 如果使用代理，检查代理是否正常"
+            "⏱️ Yêu cầu 超时\n\n"
+            "【Nguyên nhân có thể】\n"
+            "1. Kết nối 网络 không ổn định\n"
+            "2. Dịch vụ API phản hồi chậm\n"
+            "3. Thời gian tạo hình ảnh quá dài\n\n"
+            "【Giải pháp】\n"
+            "1. Kiểm tra kết nối 网络\n"
+            "2. Thử gửi lại yêu cầu\n"
+            "3. Nếu sử dụng proxy, kiểm tra xem proxy có hoạt động bình thường không"
         )
 
     if "connection" in error_str or "network" in error_str or "refused" in error_str:
         return (
-            "🌐 网络连接错误\n\n"
-            "【可能原因】\n"
-            "1. 网络连接中断\n"
-            "2. 无法访问 Google API（可能被防火墙阻止）\n"
-            "3. 代理配置问题\n\n"
-            "【解决方案】\n"
-            "1. 检查网络连接是否正常\n"
-            "2. 如果在中国大陆，可能需要配置代理\n"
-            "3. 在设置中配置 base_url 指向可用的代理地址"
+            "🌐 Lỗi kết nối 网络 (连接失败)\n\n"
+            "【Nguyên nhân có thể】\n"
+            "1. Mất kết nối 网络\n"
+            "2. Không thể truy cập Google API (có thể bị tường lửa chặn)\n"
+            "3. Sự cố cấu hình proxy\n\n"
+            "【Giải pháp】\n"
+            "1. Kiểm tra kết nối 网络 có bình thường không\n"
+            "2. Cấu hình proxy nếu cần thiết\n"
+            "3. Trong Cài đặt, cấu hình base_url trỏ tới địa chỉ proxy khả dụng"
         )
 
     if "ssl" in error_str or "certificate" in error_str:
         return (
-            "🔒 SSL/TLS 证书错误\n\n"
-            "【可能原因】\n"
-            "1. 系统时间不正确\n"
-            "2. 代理或防火墙干扰 HTTPS 连接\n"
-            "3. 证书过期或无效\n\n"
-            "【解决方案】\n"
-            "1. 检查系统时间是否正确\n"
-            "2. 检查代理或防火墙设置"
+            "🔒 Lỗi chứng chỉ SSL/TLS\n\n"
+            "【Nguyên nhân có thể】\n"
+            "1. Thời gian hệ thống không chính xác\n"
+            "2. Proxy hoặc tường lửa can thiệp kết nối HTTPS\n"
+            "3. Chứng chỉ đã hết hạn hoặc không hợp lệ\n\n"
+            "【Giải pháp】\n"
+            "1. Kiểm tra thời gian hệ thống đã chuẩn xác chưa\n"
+            "2. Kiểm tra thiết lập proxy hoặc tường lửa"
         )
 
     # 默认错误
     return (
-        f"❌ API 调用失败\n\n"
+        f"❌ Gọi API thất bại\n\n"
         f"【原始错误】\n{error_original[:500]}\n\n"
-        "【通用解决方案】\n"
-        "1. 检查 API Key 是否正确配置\n"
-        "2. 检查网络连接是否正常\n"
-        "3. 尝试更换模型或简化提示词\n"
-        "4. 查看后端日志获取更多信息"
+        "【Giải pháp】\n"
+        "1. Kiểm tra API Key đã được cấu hình chính xác chưa\n"
+        "2. Kiểm tra kết nối 网络 có bình thường không\n"
+        "3. Thử đổi model khác hoặc đơn giản hóa prompt\n"
+        "4. Xem nhật ký backend để biết thêm chi tiết"
     )
 
 
@@ -287,8 +287,8 @@ class GoogleGenAIGenerator(ImageGeneratorBase):
             logger.error("Google GenAI API Key 未配置")
             raise ValueError(
                 "Google GenAI API Key 未配置。\n"
-                "解决方案：在系统设置页面编辑该服务商，填写 API Key\n"
-                "获取 API Key: https://aistudio.google.com/app/apikey"
+                "【Giải pháp】Trong trang Cài đặt hệ thống, chỉnh sửa nhà cung cấp này và điền API Key.\n"
+                "Lấy API Key: https://aistudio.google.com/app/apikey"
             )
 
         # 初始化客户端
@@ -426,18 +426,18 @@ class GoogleGenAIGenerator(ImageGeneratorBase):
         if not image_data:
             logger.error("API 返回为空，未生成图片")
             raise ValueError(
-                "❌ 图片生成失败：API 返回为空\n\n"
-                "【可能原因】\n"
-                "1. 提示词触发了安全过滤（最常见）\n"
-                "2. 模型不支持当前的图片生成请求\n"
-                "3. 网络传输过程中数据丢失\n\n"
-                "【解决方案】\n"
-                "1. 修改提示词，避免敏感内容：\n"
-                "   - 避免涉及暴力、血腥、色情等内容\n"
-                "   - 避免涉及真实人物（明星、政治人物等）\n"
-                "   - 使用更中性、积极的描述\n"
-                "2. 尝试简化提示词\n"
-                "3. 检查网络连接后重试"
+                "❌ Tạo hình ảnh thất bại: API trả về rỗng (API 返回为空)\n\n"
+                "【Nguyên nhân có thể】\n"
+                "1. Prompt vi phạm bộ lọc chính sách an toàn (thường gặp nhất)\n"
+                "2. Model không hỗ trợ yêu cầu tạo hình ảnh hiện tại\n"
+                "3. Mất mát dữ liệu trong quá trình truyền tải 网络\n\n"
+                "【Giải pháp】\n"
+                "1. Chỉnh sửa prompt, tránh nội dung nhạy cảm:\n"
+                "   - Tránh nội dung bạo lực, phản cảm, đồi trụy\n"
+                "   - Tránh nhắc đến nhân vật đời thực (ngôi sao, chính trị gia...)\n"
+                "   - Sử dụng mô tả khách quan, tích cực hơn\n"
+                "2. Thử rút gọn và đơn giản hóa prompt\n"
+                "3. Kiểm tra kết nối 网络 rồi thử lại"
             )
 
         logger.info(f"✅ Google GenAI 图片生成成功: {len(image_data)} bytes")

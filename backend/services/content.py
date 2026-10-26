@@ -45,18 +45,9 @@ class ContentService:
                     "解决方案：检查 YAML 缩进和语法"
                 )
 
-        logger.warning("text_providers.yaml 不存在，使用默认配置")
-        return {
-            'active_provider': 'google_gemini',
-            'providers': {
-                'google_gemini': {
-                    'type': 'google_gemini',
-                    'model': 'gemini-2.0-flash-exp',
-                    'temperature': 1.0,
-                    'max_output_tokens': 8000
-                }
-            }
-        }
+        logger.warning("text_providers.yaml 不存在，使用默认配置（Google 账号登录，无需 API Key）")
+        from backend.auth import default_text_providers
+        return default_text_providers()
 
     def _get_client(self):
         """根据配置获取客户端"""
@@ -83,12 +74,12 @@ class ContentService:
 
         provider_config = providers.get(active_provider, {})
 
-        if not provider_config.get('api_key'):
+        # OAuth 服务商（Google 账号登录）不需要 API Key
+        from backend.auth import missing_credential_error, uses_oauth_auth
+
+        if not provider_config.get('api_key') and not uses_oauth_auth(provider_config):
             logger.error(f"文本服务商 [{active_provider}] 未配置 API Key")
-            raise ValueError(
-                f"文本服务商 {active_provider} 未配置 API Key\n"
-                "解决方案：在系统设置页面编辑该服务商，填写 API Key"
-            )
+            raise missing_credential_error(active_provider, provider_config.get('type'))
 
         logger.info(f"使用文本服务商: {active_provider} (type={provider_config.get('type')})")
         return get_text_chat_client(provider_config)

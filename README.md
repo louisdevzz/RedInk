@@ -202,6 +202,45 @@ The project supports two configuration methods:
 1. **Web UI (Recommended)**: Visual configuration via the Settings page after starting the service
 2. **YAML Files**: Edit config files directly
 
+### Google Account Sign-in (Antigravity) — No API Key
+
+Text **and** image generation can run on your Google account quota through Google Antigravity
+(Cloud Code Assist). Sign in once in the Settings page — **no API key needed**; API keys stay
+available as an option for the other provider types.
+
+1. Settings → **Google Account Sign-in (Antigravity)** → *Sign in with Google*
+2. A browser window opens; the local callback listens on `http://127.0.0.1:51121/oauth-callback`
+3. The first sign-in provisions the free tier automatically and stores credentials in
+   `.antigravity_credentials.json` (git-ignored; refreshes automatically)
+4. Add a provider with type **Google 账号登录 (Antigravity)** — `type: google_antigravity`, no `api_key`
+
+```yaml
+# text_providers.yaml
+providers:
+  antigravity:
+    type: google_antigravity      # OAuth: api_key is optional
+    auth: antigravity_oauth
+    model: gemini-3.1-pro-low
+
+# image_providers.yaml
+providers:
+  antigravity_image:
+    type: google_antigravity
+    auth: antigravity_oauth
+    model: auto                   # picks the image model your account offers
+```
+
+Model ids must be the bare upstream ids (`gemini-3.1-pro-low`, not `gemini-3-pro (high)`), otherwise
+the API returns `404 Requested entity was not found`. Use the model list shown on the Settings page
+after signing in. Optional env overrides: `REDINK_ANTIGRAVITY_PORT`, `REDINK_ANTIGRAVITY_VERSION`.
+
+> **OAuth client prerequisite.** Antigravity sign-in needs Google's public *Cloud Code
+> Assist* OAuth client id/secret. They are **not** shipped in the source. Provide them via
+> env `REDINK_ANTIGRAVITY_CLIENT_ID` + `REDINK_ANTIGRAVITY_CLIENT_SECRET`, or drop a
+> `.antigravity_client.json` (`{"client_id": "...", "client_secret": "..."}`, git-ignored)
+> at the project root. Missing credentials make *Sign in with Google* fail with a clear
+> message instead of silently falling back to a built-in secret.
+
 ### Text Generation Config
 
 Config file: `text_providers.yaml`

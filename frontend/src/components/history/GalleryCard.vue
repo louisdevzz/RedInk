@@ -17,10 +17,10 @@
       <!-- 悬浮操作按钮 -->
       <div class="card-overlay">
         <button class="overlay-btn" @click.stop="$emit('preview', record.id)">
-          预览
+          Xem trước
         </button>
         <button class="overlay-btn primary" @click.stop="$emit('edit', record.id)">
-          编辑
+          Chỉnh sửa
         </button>
       </div>
 
@@ -89,9 +89,9 @@ defineEmits<{
  */
 const statusText = computed(() => {
   const map: Record<string, string> = {
-    draft: '草稿',
-    completed: '已完成',
-    generating: '生成中'
+    draft: 'Bản nháp',
+    completed: 'Đã hoàn thành',
+    generating: 'Đang tạo'
   }
   return map[props.record.status] || props.record.status
 })

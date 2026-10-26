@@ -3,27 +3,27 @@
   <div v-if="visible" class="modal-overlay" @click="$emit('close')">
     <div class="modal-content" @click.stop>
       <div class="modal-header">
-        <h3>{{ isEditing ? '编辑服务商' : '添加服务商' }}</h3>
+        <h3>{{ isEditing ? 'Chỉnh sửa nhà cung cấp' : 'Thêm nhà cung cấp' }}</h3>
         <button class="close-btn" @click="$emit('close')">×</button>
       </div>
 
       <div class="modal-body">
         <!-- 服务商名称（仅添加时显示） -->
         <div class="form-group" v-if="!isEditing">
-          <label>服务商名称</label>
+          <label>Tên nhà cung cấp</label>
           <input
             type="text"
             class="form-input"
             :value="formData.name"
             @input="updateField('name', ($event.target as HTMLInputElement).value)"
-            placeholder="例如: openai"
+            placeholder="VD: openai"
           />
-          <span class="form-hint">唯一标识，用于区分不同服务商</span>
+          <span class="form-hint">Mã định danh duy nhất, dùng để phân biệt các nhà cung cấp khác nhau</span>
         </div>
 
         <!-- 类型选择 -->
         <div class="form-group">
-          <label>类型</label>
+          <label>Loại</label>
           <select
             class="form-select"
             :value="formData.type"
@@ -35,18 +35,30 @@
           </select>
         </div>
 
-        <!-- API Key -->
-        <div class="form-group">
+        <!-- API Key（OAuth 类型无需填写） -->
+        <div class="form-group" v-if="!isOauth">
           <label>API Key</label>
           <input
             type="text"
             class="form-input"
             :value="formData.api_key"
             @input="updateField('api_key', ($event.target as HTMLInputElement).value)"
-            :placeholder="isEditing && formData._has_api_key ? formData.api_key_masked : '输入 API Key'"
+            :placeholder="isEditing && formData._has_api_key ? formData.api_key_masked : 'Nhập API Key'"
           />
           <span class="form-hint" v-if="isEditing && formData._has_api_key">
-            已配置 API Key，留空表示不修改
+            Đã cấu hình API Key, để trống nghĩa là giữ nguyên
+          </span>
+        </div>
+
+        <!-- Google 账号登录提示 -->
+        <div class="form-group oauth-note" v-else>
+          <label>Phương thức xác thực</label>
+          <span class="oauth-badge" :class="{ offline: !oauthConnected }">
+            {{ oauthConnected ? `Đã đăng nhập Google 账号登录: ${oauthEmail || 'Chưa rõ'}` : 'Chưa đăng nhập Google 账号登录' }}
+          </span>
+          <span class="form-hint">
+            Loại này dùng hạn ngạch Google 账号登录 (Antigravity), không cần API Key.
+            Vui lòng hoàn tất trong thẻ "Google 账号登录" trên trang cài đặt hệ thống.
           </span>
         </div>
 
@@ -61,50 +73,57 @@
             :placeholder="baseUrlPlaceholder"
           />
           <span class="form-hint" v-if="previewUrl">
-            预览: {{ previewUrl }}
+            Xem trước: {{ previewUrl }}
           </span>
         </div>
 
         <!-- 模型 -->
         <div class="form-group">
-          <label>模型</label>
+          <label>Mô hình</label>
           <input
             type="text"
             class="form-input"
             :value="formData.model"
             @input="updateField('model', ($event.target as HTMLInputElement).value)"
             :placeholder="modelPlaceholder"
+            :list="modelListId"
           />
+          <datalist v-if="hasSuggestions" :id="modelListId">
+            <option v-for="model in modelSuggestions" :key="model" :value="model"></option>
+          </datalist>
+          <span class="form-hint" v-if="isOauth && hasSuggestions">
+            Tài khoản đã đăng nhập có thể dùng {{ modelSuggestions?.length }} mô hình, có thể chọn trực tiếp từ danh sách thả xuống
+          </span>
         </div>
 
         <!-- 端点路径（仅 OpenAI 兼容接口） -->
         <div class="form-group" v-if="showEndpointType">
-          <label>API 端点路径</label>
+          <label>Đường dẫn API endpoint</label>
           <input
             type="text"
             class="form-input"
             :value="formData.endpoint_type"
             @input="updateField('endpoint_type', ($event.target as HTMLInputElement).value)"
-            placeholder="例如: /v1/chat/completions"
+            placeholder="VD: /v1/chat/completions"
           />
           <span class="form-hint">
-            默认端点：/v1/chat/completions（大多数 OpenAI 兼容 API 使用此端点）
+            Endpoint mặc định: /v1/chat/completions (hầu hết các API tương thích OpenAI dùng endpoint này)
           </span>
         </div>
       </div>
 
       <div class="modal-footer">
-        <button class="btn" @click="$emit('close')">取消</button>
+        <button class="btn" @click="$emit('close')">Hủy</button>
         <button
           class="btn btn-secondary"
           @click="$emit('test')"
-          :disabled="testing || (!formData.api_key && !isEditing)"
+          :disabled="testing || (!formData.api_key && !isEditing && !isOauth)"
         >
           <span v-if="testing" class="spinner-small"></span>
-          {{ testing ? '测试中...' : '测试连接' }}
+          {{ testing ? 'Đang kiểm tra...' : 'Kiểm tra kết nối' }}
         </button>
         <button class="btn btn-primary" @click="$emit('save')">
-          {{ isEditing ? '保存' : '添加' }}
+          {{ isEditing ? 'Lưu' : 'Thêm' }}
         </button>
       </div>
     </div>
@@ -113,6 +132,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
+import type { AntigravityCredentialState } from '../../api'
 import type { TextProviderForm } from '../../composables/useProviderForm'
 
 /**
@@ -138,6 +158,10 @@ const props = defineProps<{
   testing: boolean
   typeOptions: TypeOption[]
   providerCategory: 'text' | 'image'
+  /** Google 账号登录状态（OAuth 类型使用） */
+  oauthState?: AntigravityCredentialState | null
+  /** 已登录账号可用的模型清单（用于输入提示） */
+  modelSuggestions?: string[]
 }>()
 
 // 定义 Emits
@@ -158,8 +182,16 @@ function updateField(field: keyof TextProviderForm, value: string) {
 
 // 是否显示 Base URL
 const showBaseUrl = computed(() => {
-  return ['openai_compatible', 'google_gemini', 'google_genai', 'image_api'].includes(props.formData.type)
+  return ['openai_compatible', 'google_gemini', 'google_genai', 'image_api', 'google_antigravity'].includes(props.formData.type)
 })
+
+// OAuth 类型（Google 账号登录）不需要 API Key
+const isOauth = computed(() => props.formData.type === 'google_antigravity')
+const oauthConnected = computed(() => Boolean(props.oauthState?.connected))
+const oauthEmail = computed(() => props.oauthState?.email ?? '')
+
+const modelListId = 'antigravity-model-suggestions'
+const hasSuggestions = computed(() => isOauth.value && (props.modelSuggestions?.length ?? 0) > 0)
 
 // 是否显示端点类型
 const showEndpointType = computed(() => {
@@ -171,9 +203,11 @@ const baseUrlPlaceholder = computed(() => {
   switch (props.formData.type) {
     case 'google_gemini':
     case 'google_genai':
-      return '例如: https://generativelanguage.googleapis.com'
+      return 'VD: https://generativelanguage.googleapis.com'
+    case 'google_antigravity':
+      return 'Có thể để trống (mặc định https://daily-cloudcode-pa.googleapis.com)'
     default:
-      return '例如: https://api.openai.com'
+      return 'VD: https://api.openai.com'
   }
 })
 
@@ -181,13 +215,15 @@ const baseUrlPlaceholder = computed(() => {
 const modelPlaceholder = computed(() => {
   switch (props.formData.type) {
     case 'google_gemini':
-      return '例如: gemini-2.0-flash-exp'
+      return 'VD: gemini-2.0-flash-exp'
     case 'google_genai':
-      return '例如: imagen-3.0-generate-002'
+      return 'VD: imagen-3.0-generate-002'
     case 'image_api':
-      return '例如: flux-pro'
+      return 'VD: flux-pro'
+    case 'google_antigravity':
+      return 'VD: gemini-3.1-pro-low (id mô hình trần, không kèm ngoặc)'
     default:
-      return '例如: gpt-4o'
+      return 'VD: gpt-4o'
   }
 })
 
@@ -211,6 +247,8 @@ const previewUrl = computed(() => {
       return `${baseUrl}/v1beta/models/${props.formData.model || '{model}'}:generateContent`
     case 'image_api':
       return `${baseUrl}/v1/images/generations`
+    case 'google_antigravity':
+      return `${baseUrl}/v1internal:streamGenerateContent?alt=sse`
     default:
       return ''
   }
@@ -395,5 +433,21 @@ const previewUrl = computed(() => {
   to {
     transform: rotate(360deg);
   }
+}
+
+/* OAuth（Google 账号登录）提示 */
+.oauth-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 13px;
+  background: #f0fdf4;
+  color: #166534;
+  margin-bottom: 6px;
+}
+
+.oauth-badge.offline {
+  background: #fffbeb;
+  color: #92400e;
 }
 </style>

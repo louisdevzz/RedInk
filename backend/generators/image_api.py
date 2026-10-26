@@ -36,7 +36,7 @@ class ImageApiGenerator(ImageGeneratorBase):
             logger.error("Image API Key 未配置")
             raise ValueError(
                 "Image API Key 未配置。\n"
-                "解决方案：在系统设置页面编辑该服务商，填写 API Key"
+                "【Giải pháp】Trong trang Cài đặt hệ thống, chỉnh sửa nhà cung cấp này và điền API Key."
             )
         return True
 

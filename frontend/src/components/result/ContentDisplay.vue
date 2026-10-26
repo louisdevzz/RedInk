@@ -7,21 +7,21 @@
           <path d="M12 5v14M5 12h14"/>
         </svg>
         <span v-if="loading" class="spinner"></span>
-        {{ loading ? '生成中...' : '生成标题、文案和标签' }}
+        {{ loading ? 'Đang tạo...' : 'Tạo tiêu đề, bài viết và thẻ' }}
       </button>
     </div>
 
     <!-- 加载状态 -->
     <div v-else-if="content.status === 'generating'" class="loading-section">
       <div class="loading-spinner"></div>
-      <p>正在生成标题、文案和标签...</p>
+      <p>Đang tạo tiêu đề, bài viết và thẻ...</p>
     </div>
 
     <!-- 错误状态 -->
     <div v-else-if="content.status === 'error'" class="error-section">
       <div class="error-icon">!</div>
-      <p class="error-message">{{ content.error || '生成失败，请重试' }}</p>
-      <button class="btn btn-secondary" @click="handleGenerate">重新生成</button>
+      <p class="error-message">{{ content.error || 'Tạo thất bại, vui lòng thử lại' }}</p>
+      <button class="btn btn-secondary" @click="handleGenerate">Tạo lại</button>
     </div>
 
     <!-- 生成结果 -->
@@ -33,7 +33,7 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M4 6h16M4 12h16M4 18h10"/>
             </svg>
-            标题
+            Tiêu đề
           </h3>
           <button class="copy-btn" @click="copyTitles" :class="{ copied: copiedTitles }">
             <svg v-if="!copiedTitles" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -43,15 +43,15 @@
             <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <polyline points="20 6 9 17 4 12"/>
             </svg>
-            {{ copiedTitles ? '已复制' : '复制' }}
+            {{ copiedTitles ? 'Đã sao chép' : 'Sao chép' }}
           </button>
         </div>
         <div class="titles-list">
           <div v-for="(title, index) in content.titles" :key="index" class="title-item" @click="copyTitle(title, index)">
-            <span class="title-badge">{{ index === 0 ? '推荐' : `备选${index}` }}</span>
+            <span class="title-badge">{{ index === 0 ? 'Gợi ý' : `Lựa chọn ${index}` }}</span>
             <span class="title-text">{{ title }}</span>
             <span class="copy-hint" :class="{ show: copiedTitleIndex === index }">
-              {{ copiedTitleIndex === index ? '已复制' : '点击复制' }}
+              {{ copiedTitleIndex === index ? 'Đã sao chép' : 'Nhấn để sao chép' }}
             </span>
           </div>
         </div>
@@ -67,7 +67,7 @@
               <line x1="16" y1="13" x2="8" y2="13"/>
               <line x1="16" y1="17" x2="8" y2="17"/>
             </svg>
-            文案
+            Nội dung bài viết
           </h3>
           <button class="copy-btn" @click="copyCopywriting" :class="{ copied: copiedCopywriting }">
             <svg v-if="!copiedCopywriting" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -77,7 +77,7 @@
             <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <polyline points="20 6 9 17 4 12"/>
             </svg>
-            {{ copiedCopywriting ? '已复制' : '复制' }}
+            {{ copiedCopywriting ? 'Đã sao chép' : 'Sao chép' }}
           </button>
         </div>
         <div class="copywriting-content">
@@ -93,7 +93,7 @@
               <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
               <line x1="7" y1="7" x2="7.01" y2="7"/>
             </svg>
-            标签
+            Thẻ tag
           </h3>
           <button class="copy-btn" @click="copyTags" :class="{ copied: copiedTags }">
             <svg v-if="!copiedTags" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -103,7 +103,7 @@
             <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <polyline points="20 6 9 17 4 12"/>
             </svg>
-            {{ copiedTags ? '已复制' : '复制全部' }}
+            {{ copiedTags ? 'Đã sao chép' : 'Sao chép tất cả' }}
           </button>
         </div>
         <div class="tags-list">
@@ -126,7 +126,7 @@
             <path d="M23 4v6h-6M1 20v-6h6"/>
             <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
           </svg>
-          {{ loading ? '生成中...' : '重新生成' }}
+          {{ loading ? 'Đang tạo...' : 'Tạo lại' }}
         </button>
       </div>
     </div>
@@ -184,10 +184,10 @@ async function handleGenerate() {
     if (result.success && result.titles && result.copywriting && result.tags) {
       store.setContent(result.titles, result.copywriting, result.tags)
     } else {
-      store.setContentError(formatErrorMessage(result.error || result.error_message || '生成失败', '内容生成失败'))
+      store.setContentError(formatErrorMessage(result.error || result.error_message || 'Tạo thất bại', 'Tạo nội dung thất bại'))
     }
   } catch (error: any) {
-    store.setContentError(formatErrorMessage(error, '内容生成失败'))
+    store.setContentError(formatErrorMessage(error, 'Tạo nội dung thất bại'))
   } finally {
     loading.value = false
   }

@@ -50,17 +50,13 @@ def create_config_blueprint():
           - image_generation: 图片生成配置
         """
         try:
-            # 读取图片生成配置
-            image_config = _read_config(IMAGE_CONFIG_PATH, {
-                'active_provider': 'google_genai',
-                'providers': {}
-            })
+            from backend.auth import default_image_providers, default_text_providers
+
+            # 读取图片生成配置（缺省时走 Google 账号登录，无需 API Key）
+            image_config = _read_config(IMAGE_CONFIG_PATH, default_image_providers())
 
             # 读取文本生成配置
-            text_config = _read_config(TEXT_CONFIG_PATH, {
-                'active_provider': 'google_gemini',
-                'providers': {}
-            })
+            text_config = _read_config(TEXT_CONFIG_PATH, default_text_providers())
 
             return jsonify({
                 "success": True,
@@ -132,7 +128,7 @@ def create_config_blueprint():
         测试服务商连接
 
         请求体：
-        - type: 服务商类型（google_genai/google_gemini/openai_compatible/image_api）
+        - type: 服务商类型（google_genai/google_gemini/openai_compatible/image_api/google_antigravity）
         - provider_name: 服务商名称（用于从配置读取 API Key）
         - api_key: API Key（可选，若不提供则从配置读取）
         - base_url: Base URL（可选）
@@ -153,7 +149,7 @@ def create_config_blueprint():
                 return api_error_response(
                     validation_error("缺少 type 参数", "请选择服务商类型后再测试连接。")
                 )
-            if provider_type not in ['google_genai', 'google_gemini', 'openai_compatible', 'image_api']:
+            if provider_type not in ['google_genai', 'google_gemini', 'openai_compatible', 'image_api', 'google_antigravity']:
                 return api_error_response(
                     validation_error(f"不支持的类型: {provider_type}", "请选择正确的服务商类型后再测试连接。")
                 )
@@ -170,7 +166,10 @@ def create_config_blueprint():
             if not config['api_key'] and provider_name:
                 config = _load_provider_config(provider_type, provider_name, config)
 
-            if not config['api_key']:
+            from backend.auth import uses_oauth_auth
+            is_oauth = provider_type == 'google_antigravity' or uses_oauth_auth(config)
+
+            if not config['api_key'] and not is_oauth:
                 return api_error_response(
                     validation_error("API Key 未配置", "请先填写并保存该服务商的 API Key。"),
                     context=_error_context(provider_type, provider_name, config),
@@ -240,6 +239,8 @@ def _update_provider_config(config_path: Path, new_data: dict):
             # 移除不需要保存的字段
             new_provider_config.pop('api_key_env', None)
             new_provider_config.pop('api_key_masked', None)
+            # oauth 是只读状态回显（登录状态由后端凭据文件决定），不落盘
+            new_provider_config.pop('oauth', None)
 
         existing_config['providers'] = new_providers
 
@@ -274,27 +275,35 @@ def _load_provider_config(provider_type: str, provider_name: str, config: dict) 
     Returns:
         dict: 合并后的配置
     """
-    # 确定配置文件路径
+    # 确定配置文件路径（google_antigravity 同时可用于文本和图片，需要都查）
     if provider_type in ['openai_compatible', 'google_gemini']:
-        config_path = TEXT_CONFIG_PATH
+        config_paths = [TEXT_CONFIG_PATH]
+    elif provider_type in ['google_genai', 'image_api']:
+        config_paths = [IMAGE_CONFIG_PATH]
     else:
-        config_path = IMAGE_CONFIG_PATH
+        config_paths = [TEXT_CONFIG_PATH, IMAGE_CONFIG_PATH]
 
-    if config_path.exists():
+    for config_path in config_paths:
+        if not config_path.exists():
+            continue
         with open(config_path, 'r', encoding='utf-8') as f:
             yaml_config = yaml.safe_load(f) or {}
             providers = yaml_config.get('providers', {})
 
-            if provider_name in providers:
-                saved = providers[provider_name]
-                config['api_key'] = saved.get('api_key')
+        if provider_name not in providers:
+            continue
 
-                if not config['base_url']:
-                    config['base_url'] = saved.get('base_url')
-                if not config['model']:
-                    config['model'] = saved.get('model')
-                if not config.get('endpoint_type'):
-                    config['endpoint_type'] = saved.get('endpoint_type')
+        saved = providers[provider_name]
+        if not config.get('api_key'):
+            config['api_key'] = saved.get('api_key')
+        if not config.get('base_url'):
+            config['base_url'] = saved.get('base_url')
+        if not config.get('model'):
+            config['model'] = saved.get('model')
+        if not config.get('endpoint_type'):
+            config['endpoint_type'] = saved.get('endpoint_type')
+        if not config.get('auth'):
+            config['auth'] = saved.get('auth')
 
     return config
 
@@ -323,6 +332,9 @@ def _test_provider_connection(provider_type: str, config: dict) -> dict:
 
     elif provider_type == 'image_api':
         return _test_image_api(config)
+
+    elif provider_type == 'google_antigravity':
+        return _test_google_antigravity(config, test_prompt)
 
     else:
         raise ValueError(f"不支持的类型: {provider_type}")
@@ -403,6 +415,50 @@ def _test_openai_compatible(config: dict, test_prompt: str) -> dict:
     """测试 OpenAI 兼容接口"""
     result = _test_openai_chat_completion(config, test_prompt)
     return _check_response(result)
+
+
+def _test_google_antigravity(config: dict, test_prompt: str) -> dict:
+    """
+    测试 Antigravity（Google 账号登录）连接：
+    1. 校验本地登录凭据是否存在
+    2. 拉取账号可用模型清单（验证 UA / project / 权限）
+    3. 用配置里的模型发一次最小请求
+    """
+    from backend.auth.antigravity_credentials import connection_summary
+    from backend.utils.antigravity_client import AntigravityClient
+
+    summary = connection_summary()
+    if not summary.get('connected'):
+        raise Exception(
+            "尚未登录 Google 账号。\n"
+            "解决方案：在系统设置页面「Google 账号登录」中完成登录（无需 API Key）"
+        )
+
+    client = AntigravityClient(base_url=config.get('base_url'))
+    roster = client.fetch_available_models()
+    available = roster.get('text_models') or []
+
+    model = config.get('model') or 'gemini-3.1-pro-low'
+    if available and model not in available:
+        model = available[0]
+        warning = f"配置的模型不在该账号可用列表中，已改用 {model} 测试"
+    else:
+        warning = None
+
+    result_text = client.generate_text(
+        prompt=test_prompt,
+        model=model,
+        temperature=1.0,
+        max_output_tokens=64,
+    )
+
+    payload = _check_response(LlmSmokeResult(text=result_text, source='text', finish_reason='stop'))
+    account_note = f"（账号: {summary.get('email') or '未知'}，模型: {model}）"
+    payload['message'] = f"{payload.get('message', '连接成功')}{account_note}"
+    if warning:
+        payload['warning'] = True
+        payload['model_warning'] = warning
+    return payload
 
 
 def _test_image_api(config: dict) -> dict:

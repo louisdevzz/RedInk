@@ -1,26 +1,35 @@
-# 图片生成服务商配置
-# 复制此文件为 image_providers.yaml 并填写你的配置
+# Cấu hình nhà cung cấp tạo ảnh
+# Sao chép tệp này thành image_providers.yaml rồi điền cấu hình của bạn
 
-# 当前激活的服务商（填写下方 providers 中的名称）
-active_provider: gemini
+# Nhà cung cấp đang dùng (ghi đúng tên có trong providers bên dưới)
+active_provider: antigravity_image
 
-# 服务商列表
+# Danh sách nhà cung cấp
 providers:
-  # Google Gemini 图片生成（推荐）
+  # Google Antigravity tạo ảnh (đăng nhập tài khoản Google, KHÔNG cần API Key)
+  # model: auto sẽ tự dùng model ảnh mà tài khoản của bạn được cấp
+  antigravity_image:
+    type: google_antigravity
+    auth: antigravity_oauth
+    model: auto
+    high_concurrency: false
+    default_aspect_ratio: '3:4'
+
+  # Google Gemini tạo ảnh (cần API Key)
   gemini:
     type: google_genai
     api_key: AIzaxxxxxxxxxxxxxxxxxxxxxxxxx
     model: gemini-3-pro-image-preview
-    high_concurrency: false  # 是否启用高并发，GCP 300$ 试用账号不建议启用
+    high_concurrency: false  # có bật chạy song song hay không; tài khoản dùng thử GCP 300$ không nên bật
 
-  # Google Vertex AI（需要配置 GCP 凭证）
+  # Google Vertex AI (chỉ dùng khi bạn đã có credentials GCP)
   vertex:
     type: google_genai
     api_key: your-vertex-api-key
     model: gemini-3-pro-image-preview
-    high_concurrency: true  # 付费账号可以启用高并发
+    high_concurrency: true  # tài khoản trả phí có thể bật song song
 
-  # OpenAI 兼容接口（如支持图片生成的第三方 API）
+  # Giao thức OpenAI-compatible (API bên thứ ba có hỗ trợ tạo ảnh)
   openai_image:
     type: image_api
     api_key: sk-xxxxxxxxxxxxxxxxxxxx

@@ -2,11 +2,11 @@
   <!-- 服务商列表表格 -->
   <div class="provider-table">
     <div class="table-header">
-      <div class="col-status">状态</div>
-      <div class="col-name">名称</div>
-      <div class="col-model">模型</div>
+      <div class="col-status">Trạng thái</div>
+      <div class="col-name">Tên</div>
+      <div class="col-model">Mô hình</div>
       <div class="col-apikey">API Key</div>
-      <div class="col-actions">操作</div>
+      <div class="col-actions">Thao tác</div>
     </div>
     <div
       v-for="(provider, name) in providers"
@@ -21,7 +21,7 @@
           @click="$emit('activate', name)"
           :disabled="activeProvider === name"
         >
-          {{ activeProvider === name ? '已激活' : '激活' }}
+          {{ activeProvider === name ? 'Đã kích hoạt' : 'Kích hoạt' }}
         </button>
       </div>
       <div class="col-name">
@@ -31,17 +31,20 @@
         <span class="model-name">{{ provider.model }}</span>
       </div>
       <div class="col-apikey">
-        <span class="apikey-masked" :class="{ empty: !provider.api_key_masked }">
-          {{ provider.api_key_masked || '未配置' }}
+        <span v-if="isOauth(provider)" class="apikey-oauth" :class="{ offline: !provider.oauth?.connected }">
+          {{ provider.oauth?.connected ? `Đã đăng nhập: ${provider.oauth.email || 'Tài khoản Google'}` : 'Chưa đăng nhập tài khoản Google' }}
+        </span>
+        <span v-else class="apikey-masked" :class="{ empty: !provider.api_key_masked }">
+          {{ provider.api_key_masked || 'Chưa cấu hình' }}
         </span>
       </div>
       <div class="col-actions">
-        <button class="btn-icon" @click="$emit('test', name, provider)" title="测试连接">
+        <button class="btn-icon" @click="$emit('test', name, provider)" title="Kiểm tra kết nối">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
           </svg>
         </button>
-        <button class="btn-icon" @click="$emit('edit', name, provider)" title="编辑">
+        <button class="btn-icon" @click="$emit('edit', name, provider)" title="Chỉnh sửa">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
             <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
@@ -51,7 +54,7 @@
           class="btn-icon danger"
           @click="$emit('delete', name)"
           v-if="canDelete"
-          title="删除"
+          title="Xóa"
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <polyline points="3 6 5 6 21 6"></polyline>
@@ -65,6 +68,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
+import type { Provider } from '../../composables/useProviderForm'
 
 /**
  * 服务商列表表格组件
@@ -72,16 +76,8 @@ import { computed } from 'vue'
  * 功能：
  * - 展示服务商列表
  * - 激活/编辑/删除/测试操作
+ * - OAuth（Google 账号登录）服务商显示登录状态而不是 API Key
  */
-
-// 定义服务商类型
-interface Provider {
-  type: string
-  model: string
-  base_url?: string
-  api_key?: string
-  api_key_masked?: string
-}
 
 // 定义 Props
 const props = defineProps<{
@@ -99,6 +95,10 @@ defineEmits<{
 
 // 是否可以删除（至少保留一个）
 const canDelete = computed(() => Object.keys(props.providers).length > 1)
+
+function isOauth(provider: Provider): boolean {
+  return provider.type === 'google_antigravity' || provider.auth === 'antigravity_oauth'
+}
 </script>
 
 <style scoped>
@@ -196,6 +196,15 @@ const canDelete = computed(() => Object.keys(props.providers).length > 1)
 }
 
 .apikey-masked.empty {
+  color: #f59e0b;
+}
+
+.apikey-oauth {
+  font-size: 12px;
+  color: #16a34a;
+}
+
+.apikey-oauth.offline {
   color: #f59e0b;
 }
 

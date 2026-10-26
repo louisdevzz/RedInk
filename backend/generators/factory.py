@@ -3,6 +3,7 @@ from typing import Dict, Any
 from .base import ImageGeneratorBase
 from .google_genai import GoogleGenAIGenerator
 from .openai_compatible import OpenAICompatibleGenerator
+from .antigravity_genai import AntigravityImageGenerator
 from .image_api import ImageApiGenerator
 
 
@@ -15,6 +16,7 @@ class ImageGeneratorFactory:
         'openai': OpenAICompatibleGenerator,
         'openai_compatible': OpenAICompatibleGenerator,
         'image_api': ImageApiGenerator,
+        'google_antigravity': AntigravityImageGenerator,
     }
 
     @classmethod
@@ -23,7 +25,7 @@ class ImageGeneratorFactory:
         创建图片生成器实例
 
         Args:
-            provider: 服务商类型 ('google_genai', 'openai', 'openai_compatible')
+            provider: 服务商类型 ('google_genai', 'openai', 'openai_compatible', 'image_api', 'google_antigravity')
             config: 配置字典
 
         Returns:

@@ -214,6 +214,42 @@ pnpm dev
 1. **Web 界面配置（推荐）**：启动服务后，在设置页面可视化配置
 2. **YAML 文件配置**：直接编辑配置文件
 
+### Google 账号登录（Antigravity）—— 无需 API Key
+
+文本生成和图片生成都可以直接使用 Google 账号（Antigravity / Cloud Code Assist）的配额：
+在设置页面登录一次即可，**不需要 API Key**；API Key 仍然是其他服务商类型的可选方案。
+
+1. 设置 → **Google 账号登录（Antigravity）** → 「使用 Google 账号登录」
+2. 浏览器完成授权，本地回调地址为 `http://127.0.0.1:51121/oauth-callback`
+3. 首次登录会自动开通免费档，凭据保存在 `.antigravity_credentials.json`（已被 git 忽略，过期自动刷新）
+4. 添加服务商时选择「Google 账号登录（Antigravity）」类型 —— `type: google_antigravity`，不填 `api_key`
+
+```yaml
+# text_providers.yaml
+providers:
+  antigravity:
+    type: google_antigravity      # OAuth 方式，api_key 可省略
+    auth: antigravity_oauth
+    model: gemini-3.1-pro-low
+
+# image_providers.yaml
+providers:
+  antigravity_image:
+    type: google_antigravity
+    auth: antigravity_oauth
+    model: auto                   # 自动使用该账号提供的图片模型
+```
+
+模型名必须使用裸 id（`gemini-3.1-pro-low`，不能写 `gemini-3-pro (high)`），否则接口返回
+`404 Requested entity was not found`。登录后设置页面会列出该账号可用的模型。
+可选环境变量：`REDINK_ANTIGRAVITY_PORT`、`REDINK_ANTIGRAVITY_VERSION`。
+
+> **OAuth 客户端前提**：Antigravity 登录需要 Google 公开内置的 *Cloud Code Assist* OAuth
+> client id/secret。源码不再附带，请通过环境变量 `REDINK_ANTIGRAVITY_CLIENT_ID` +
+> `REDINK_ANTIGRAVITY_CLIENT_SECRET`，或在项目根目录放置 `.antigravity_client.json`
+> （`{"client_id": "...", "client_secret": "..."}`，已被 git 忽略）。缺失时「使用 Google
+> 账号登录」会明确报错，而不是回退内置密钥。
+
 ### 文本生成配置
 
 配置文件: `text_providers.yaml`

@@ -2,20 +2,20 @@
   <div class="container" style="max-width: 100%;">
     <div class="page-header" style="max-width: 1200px; margin: 0 auto 30px auto;">
       <div>
-        <h1 class="page-title">编辑大纲</h1>
+        <h1 class="page-title">Chỉnh sửa dàn ý</h1>
         <p class="page-subtitle">
-          调整页面顺序，修改文案，打造完美内容
-          <span v-if="isSaving" class="save-indicator saving">保存中...</span>
-          <span v-else class="save-indicator saved">已保存</span>
+          Điều chỉnh thứ tự trang, chỉnh sửa nội dung, tạo tác phẩm hoàn hảo
+          <span v-if="isSaving" class="save-indicator saving">Đang lưu...</span>
+          <span v-else class="save-indicator saved">Đã lưu</span>
         </p>
       </div>
       <div style="display: flex; gap: 12px;">
         <button class="btn btn-secondary" @click="goBack" style="background: white; border: 1px solid var(--border-color);">
-          上一步
+          Bước trước
         </button>
         <button class="btn btn-primary" @click="startGeneration">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px;"><path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5z"></path><line x1="16" y1="8" x2="2" y2="22"></line><line x1="17.5" y1="15" x2="9" y2="15"></line></svg>
-          开始生成图片
+          Bắt đầu tạo ảnh
         </button>
       </div>
     </div>
@@ -39,10 +39,10 @@
           </div>
           
           <div class="card-controls">
-            <div class="drag-handle" title="拖拽排序">
+            <div class="drag-handle" title="Kéo để sắp xếp">
                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="12" r="1"></circle><circle cx="9" cy="5" r="1"></circle><circle cx="9" cy="19" r="1"></circle><circle cx="15" cy="12" r="1"></circle><circle cx="15" cy="5" r="1"></circle><circle cx="15" cy="19" r="1"></circle></svg>
             </div>
-            <button class="icon-btn" @click="deletePage(idx)" title="删除此页">
+            <button class="icon-btn" @click="deletePage(idx)" title="Xóa trang này">
                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
             </button>
           </div>
@@ -51,18 +51,18 @@
         <textarea
           v-model="page.content"
           class="textarea-paper"
-          placeholder="在此输入文案..."
+          placeholder="Nhập nội dung vào đây..."
           @input="store.updatePage(page.index, page.content)"
         />
         
-        <div class="word-count">{{ page.content.length }} 字</div>
+        <div class="word-count">{{ page.content.length }} ký tự</div>
       </div>
 
       <!-- 添加按钮卡片 -->
       <div class="card add-card-dashed" @click="addPage('content')">
         <div class="add-content">
           <div class="add-icon">+</div>
-          <span>添加页面</span>
+          <span>Thêm trang</span>
         </div>
       </div>
     </div>
@@ -87,11 +87,11 @@ const isSaving = ref(false)
 
 const getPageTypeName = (type: string) => {
   const names = {
-    cover: '封面',
-    content: '内容',
-    summary: '总结'
+    cover: 'Bìa',
+    content: 'Nội dung',
+    summary: 'Tổng kết'
   }
-  return names[type as keyof typeof names] || '内容'
+  return names[type as keyof typeof names] || 'Nội dung'
 }
 
 // 拖拽逻辑
@@ -117,7 +117,7 @@ const onDrop = (_e: DragEvent, index: number) => {
 }
 
 const deletePage = (index: number) => {
-  if (confirm('确定要删除这一页吗？')) {
+  if (confirm('Bạn có chắc chắn muốn xóa trang này không?')) {
     store.deletePage(index)
   }
 }

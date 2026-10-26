@@ -30,7 +30,7 @@ export async function createHistory(
     )
     return response.data
   } catch (error: any) {
-    return { success: false, ...getApiErrorPayload(error, '创建历史记录失败') }
+    return { success: false, ...getApiErrorPayload(error, 'Tạo bản ghi lịch sử thất bại') }
   }
 }
 
@@ -65,7 +65,7 @@ export async function getHistoryList(
       page: 1,
       page_size: pageSize,
       total_pages: 0,
-      ...getApiErrorPayload(error, '获取历史记录列表失败')
+      ...getApiErrorPayload(error, 'Lấy danh sách lịch sử thất bại')
     }
   }
 }
@@ -82,7 +82,7 @@ export async function getHistory(recordId: string): Promise<{
     })
     return response.data
   } catch (error: any) {
-    return { success: false, ...getApiErrorPayload(error, '获取历史记录详情失败') }
+    return { success: false, ...getApiErrorPayload(error, 'Lấy chi tiết lịch sử thất bại') }
   }
 }
 
@@ -100,7 +100,7 @@ export async function updateHistory(
     )
     return response.data
   } catch (error: any) {
-    return { success: false, ...getApiErrorPayload(error, '更新历史记录失败') }
+    return { success: false, ...getApiErrorPayload(error, 'Cập nhật lịch sử thất bại') }
   }
 }
 
@@ -135,7 +135,7 @@ export async function deleteHistory(recordId: string): Promise<{
     )
     return response.data
   } catch (error: any) {
-    return { success: false, ...getApiErrorPayload(error, '删除历史记录失败') }
+    return { success: false, ...getApiErrorPayload(error, 'Xóa bản ghi lịch sử thất bại') }
   }
 }
 
@@ -152,7 +152,7 @@ export async function searchHistory(keyword: string): Promise<{
     })
     return response.data
   } catch (error: any) {
-    return { success: false, records: [], ...getApiErrorPayload(error, '搜索历史记录失败') }
+    return { success: false, records: [], ...getApiErrorPayload(error, 'Tìm kiếm lịch sử thất bại') }
   }
 }
 
@@ -169,7 +169,7 @@ export async function getHistoryStats(): Promise<{
     })
     return response.data
   } catch (error: any) {
-    return { success: false, total: 0, by_status: {}, ...getApiErrorPayload(error, '获取统计信息失败') }
+    return { success: false, total: 0, by_status: {}, ...getApiErrorPayload(error, 'Lấy thông tin thống kê thất bại') }
   }
 }
 

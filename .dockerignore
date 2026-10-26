@@ -35,6 +35,10 @@ history
 .env.local
 .env.*.local
 
+# Antigravity Google OAuth 凭据（敏感信息）
+.antigravity_credentials.json
+.antigravity_credentials.json.lock
+
 # 日志
 *.log
 

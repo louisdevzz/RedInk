@@ -10,16 +10,16 @@
         <p class="error-detail">{{ normalized.detail }}</p>
         <p v-if="normalized.suggestion" class="error-suggestion">{{ normalized.suggestion }}</p>
       </div>
-      <button v-if="dismissible" class="error-close" type="button" @click="$emit('dismiss')" aria-label="关闭错误提示">
+      <button v-if="dismissible" class="error-close" type="button" @click="$emit('dismiss')" aria-label="Đóng thông báo lỗi">
         ×
       </button>
     </div>
 
     <details class="error-details">
-      <summary>诊断信息</summary>
+      <summary>Thông tin chẩn đoán</summary>
       <pre>{{ diagnostics }}</pre>
       <button class="copy-btn" type="button" @click="copyDiagnostics">
-        {{ copied ? '已复制' : '复制诊断信息' }}
+        {{ copied ? 'Đã sao chép' : 'Sao chép thông tin chẩn đoán' }}
       </button>
     </details>
   </section>
@@ -48,7 +48,7 @@ const copied = ref(false)
 
 const normalized = computed<AppError | null>(() => {
   if (!props.error) return null
-  return normalizeApiError(props.error, props.title || '操作失败')
+  return normalizeApiError(props.error, props.title || 'Thao tác thất bại')
 })
 
 const diagnostics = computed(() => normalized.value ? diagnosticsText(normalized.value) : '')

@@ -2,16 +2,16 @@
   <div class="container">
     <div class="page-header">
       <div>
-        <h1 class="page-title">创作完成</h1>
-        <p class="page-subtitle">恭喜！你的小红书图文已生成完毕，共 {{ store.images.length }} 张</p>
+        <h1 class="page-title">Hoàn tất sáng tác</h1>
+        <p class="page-subtitle">Chúc mừng! Bài viết RedNote của bạn đã được tạo xong, tổng cộng {{ store.images.length }} ảnh</p>
       </div>
       <div style="display: flex; gap: 12px;">
         <button class="btn" @click="startOver" style="background: white; border: 1px solid var(--border-color);">
-          再来一篇
+          Tạo bài mới
         </button>
         <button class="btn btn-primary" @click="downloadAll">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-          一键下载
+          Tải tất cả
         </button>
       </div>
     </div>
@@ -35,18 +35,18 @@
           >
             <img
               :src="image.url"
-              :alt="`第 ${image.index + 1} 页`"
+              :alt="`Trang ${image.index + 1}`"
               style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s;"
             />
             <!-- Regenerating Overlay -->
             <div v-if="regeneratingIndex === image.index" style="position: absolute; inset: 0; background: rgba(255,255,255,0.8); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 10;">
                <div class="spinner" style="width: 24px; height: 24px; border-width: 2px; border-color: var(--primary); border-top-color: transparent;"></div>
-               <span style="font-size: 12px; color: var(--primary); margin-top: 8px; font-weight: 600;">重绘中...</span>
+               <span style="font-size: 12px; color: var(--primary); margin-top: 8px; font-weight: 600;">Đang vẽ lại...</span>
             </div>
 
             <!-- Hover Overlay -->
             <div v-else style="position: absolute; inset: 0; background: rgba(0,0,0,0.3); opacity: 0; transition: opacity 0.2s; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600;" class="hover-overlay">
-              预览大图
+              Xem trước
             </div>
           </div>
 
@@ -56,7 +56,7 @@
             <div style="display: flex; gap: 8px;">
               <button
                 style="border: none; background: none; color: var(--text-sub); cursor: pointer; display: flex; align-items: center;"
-                title="重新生成此图"
+                title="Tạo lại ảnh này"
                 @click="handleRegenerate(image)"
                 :disabled="regeneratingIndex === image.index"
               >
@@ -66,7 +66,7 @@
                 style="border: none; background: none; color: var(--primary); cursor: pointer; font-size: 12px;"
                 @click="downloadOne(image)"
               >
-                下载
+                Tải về
               </button>
             </div>
           </div>
@@ -157,7 +157,7 @@ const handleRegenerate = async (image: any) => {
     // Find the page content from outline
     const pageContent = store.outline.pages.find(p => p.index === image.index)
     if (!pageContent) {
-       error.value = normalizeApiError('无法找到对应页面的内容', '无法重新生成')
+       error.value = normalizeApiError('Không thể tìm thấy nội dung của trang tương ứng', 'Không thể tạo lại')
        return
     }
 
@@ -173,10 +173,10 @@ const handleRegenerate = async (image: any) => {
        const newUrl = result.image_url
        store.updateImage(image.index, newUrl)
     } else {
-       error.value = normalizeApiError(result.error || result.error_message || '重绘失败', '重绘失败')
+       error.value = normalizeApiError(result.error || result.error_message || 'Vẽ lại thất bại', 'Vẽ lại thất bại')
     }
   } catch (e: any) {
-    error.value = normalizeApiError(e, '重绘失败')
+    error.value = normalizeApiError(e, 'Vẽ lại thất bại')
   } finally {
     regeneratingIndex.value = null
   }

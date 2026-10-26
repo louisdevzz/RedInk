@@ -188,13 +188,16 @@ class ImageService:
 
             # 调用生成器生成图片。所有路径共用 limiter，避免批量和重试打爆上游。
             with self.rate_limiter.acquire():
-                if self.provider_config.get('type') == 'google_genai':
-                    logger.debug(f"  使用 Google GenAI 生成器")
+                if self.provider_config.get('type') in ('google_genai', 'google_antigravity'):
+                    logger.debug(f"  使用 {self.provider_config.get('type')} 生成器")
+                    # Antigravity 的模型 id 由账号侧决定，默认 auto 让生成器按
+                    # imageGenerationModelIds 选择；google_genai 保留原默认值
+                    is_antigravity = self.provider_config.get('type') == 'google_antigravity'
                     image_data = self.generator.generate_image(
                         prompt=prompt,
                         aspect_ratio=self.provider_config.get('default_aspect_ratio', '3:4'),
                         temperature=self.provider_config.get('temperature', 1.0),
-                        model=self.provider_config.get('model', 'gemini-3-pro-image-preview'),
+                        model=self.provider_config.get('model') or ('auto' if is_antigravity else 'gemini-3-pro-image-preview'),
                         reference_image=reference_image,
                     )
                 elif self.provider_config.get('type') == 'image_api':

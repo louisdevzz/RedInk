@@ -12,7 +12,7 @@
         </svg>
       </div>
       <div class="stat-content">
-        <h4>总作品数</h4>
+        <h4>Tổng số tác phẩm</h4>
         <div class="number">{{ stats.total || 0 }}</div>
       </div>
     </div>
@@ -25,7 +25,7 @@
         </svg>
       </div>
       <div class="stat-content">
-        <h4>已完成</h4>
+        <h4>Đã hoàn thành</h4>
         <div class="number">{{ stats.by_status?.completed || 0 }}</div>
       </div>
     </div>
@@ -38,7 +38,7 @@
         </svg>
       </div>
       <div class="stat-content">
-        <h4>草稿箱</h4>
+        <h4>Bản nháp</h4>
         <div class="number">{{ stats.by_status?.draft || 0 }}</div>
       </div>
     </div>

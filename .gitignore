@@ -59,6 +59,14 @@ history/*
 /image_providers.yaml
 /text_providers.yaml
 
+# Antigravity Google OAuth 凭据（access_token / refresh_token）
+.antigravity_credentials.json
+.antigravity_credentials.json.lock
+*.credentials.json
+
+# Antigravity 公开 OAuth 客户端凭据（本地提供，不随源码分发）
+.antigravity_client.json
+
 # Logs
 *.log
 logs/

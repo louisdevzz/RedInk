@@ -8,13 +8,13 @@
       <div class="hero-content">
         <div class="brand-pill">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px;"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
-          AI 驱动的红墨创作助手
+          Trợ lý sáng tạo RedInk được hỗ trợ bởi AI
         </div>
         <div class="platform-slogan">
-          让传播不再需要门槛，让创作从未如此简单
+          Để việc lan tỏa không còn rào cản, để sáng tạo chưa từng dễ dàng đến thế
         </div>
-        <h1 class="page-title">灵感一触即发</h1>
-        <p class="page-subtitle">输入你的创意主题，让 AI 帮你生成爆款标题、正文和封面图</p>
+        <h1 class="page-title">Khơi nguồn cảm hứng tức thì</h1>
+        <p class="page-subtitle">Nhập chủ đề ý tưởng của bạn, để AI giúp bạn tạo tiêu đề, nội dung và ảnh bìa thu hút</p>
       </div>
 
       <!-- 主题输入组合框 -->
@@ -30,7 +30,7 @@
     <!-- 版权信息 -->
     <div class="page-footer">
       <div class="footer-tip">
-        配置不成功？访问 <a href="https://redink.top" target="_blank" rel="noopener noreferrer">redink.top</a> 官方站点即刻体验
+        Cấu hình không thành công? Truy cập trang chính thức <a href="https://redink.top" target="_blank" rel="noopener noreferrer">redink.top</a> để trải nghiệm ngay
       </div>
       <div class="footer-copyright">
         © 2025 <a href="https://github.com/HisMax/RedInk" target="_blank" rel="noopener noreferrer">RedInk</a> by 默子 (Histone)
@@ -141,10 +141,10 @@ async function handleGenerate() {
 
       router.push('/outline')
     } else {
-      error.value = normalizeApiError(result.error || result.error_message || '生成大纲失败', '生成大纲失败')
+      error.value = normalizeApiError(result.error || result.error_message || 'Tạo dàn ý thất bại', 'Tạo dàn ý thất bại')
     }
   } catch (err: any) {
-    error.value = normalizeApiError(err, '生成大纲失败')
+    error.value = normalizeApiError(err, 'Tạo dàn ý thất bại')
   } finally {
     loading.value = false
   }

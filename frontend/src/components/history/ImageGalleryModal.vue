@@ -18,16 +18,16 @@
               class="title-expand-btn"
               @click="titleExpanded = !titleExpanded"
             >
-              {{ titleExpanded ? '收起' : '展开' }}
+              {{ titleExpanded ? 'Thu gọn' : 'Mở rộng' }}
             </button>
           </div>
 
           <div class="modal-meta">
-            <span>{{ record.outline.pages.length }} 张图片 · {{ formattedDate }}</span>
+            <span>{{ record.outline.pages.length }} ảnh · {{ formattedDate }}</span>
             <button
               class="view-outline-btn"
               @click="$emit('showOutline')"
-              title="查看完整大纲"
+              title="Xem dàn ý đầy đủ"
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
@@ -35,7 +35,7 @@
                 <line x1="16" y1="13" x2="8" y2="13"></line>
                 <line x1="16" y1="17" x2="8" y2="17"></line>
               </svg>
-              查看大纲
+              Xem dàn ý
             </button>
           </div>
         </div>
@@ -47,7 +47,7 @@
               <polyline points="7 10 12 15 17 10"></polyline>
               <line x1="12" y1="15" x2="12" y2="3"></line>
             </svg>
-            打包下载
+            Tải về tất cả
           </button>
           <button class="close-icon" @click="$emit('close')">×</button>
         </div>
@@ -80,7 +80,7 @@
                   <path d="M23 4v6h-6"></path>
                   <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
                 </svg>
-                {{ regeneratingImages.has(idx) ? '重绘中...' : '重新生成' }}
+                {{ regeneratingImages.has(idx) ? 'Đang tạo lại...' : 'Tạo lại' }}
               </button>
             </div>
           </div>
@@ -93,7 +93,7 @@
               class="download-link"
               @click="$emit('download', img, idx)"
             >
-              下载
+              Tải về
             </span>
           </div>
         </div>
